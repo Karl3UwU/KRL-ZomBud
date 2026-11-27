@@ -2,7 +2,7 @@ NAME=zbNative
 ARCH=x86_64
 
 CC=$(ARCH)-w64-mingw32-gcc
-CFLAGS=-Wall -Os
+CFLAGS=-Wall -Os -D_WIN32_WINNT=0x0A00
 LDFLAGS=-shared -Wl,--gc-sections -Wl,--strip-all -nostdlib -Wl,--entry=DllMain
 
 TARGET1=$(NAME).dll

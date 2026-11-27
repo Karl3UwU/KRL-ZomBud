@@ -1,6 +1,5 @@
 package me.zed_0xff.zombie_buddy;
 
-import java.io.File;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -9,18 +8,31 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import static me.zed_0xff.zombie_buddy.SteamWorkshop.WorkshopItemID;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.io.TempDir;
 
 class JavaModInfoTest {
     private static final String HOME_DIR  = System.getProperty("user.home");
-    private static final String CACHE_DIR = HOME_DIR + File.separator + "Zomboid";
+
+    // Fake ~/Zomboid cache dir, so tests don't depend on the developer's real Workshop folder.
+    @TempDir
+    Path cacheDir;
+    private String CACHE_DIR;
 
     private MockedStatic<Utils> utilsMock;
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        CACHE_DIR = cacheDir.toString();
+        // A locally uploaded Workshop item: <cache>/Workshop/<name>/workshop.txt holds its published id.
+        Path item = cacheDir.resolve("Workshop/ZBExhume41");
+        Files.createDirectories(item.resolve("Contents/mods/ZBExhume41/common"));
+        Files.writeString(item.resolve("workshop.txt"), "version=1\nid=3718604798\n");
+
         utilsMock = mockStatic(Utils.class, CALLS_REAL_METHODS);
         utilsMock.when(Utils::getCacheDir).thenReturn(CACHE_DIR);
-        utilsMock.when(Utils::getCachePath).thenReturn(Path.of(CACHE_DIR));
+        utilsMock.when(Utils::getCachePath).thenReturn(cacheDir);
     }
 
     @AfterEach

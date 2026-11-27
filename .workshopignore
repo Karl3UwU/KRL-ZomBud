@@ -19,7 +19,6 @@ test*.jar
 .settings
 
 names.yml
-Rakefile
 
 authors
 build

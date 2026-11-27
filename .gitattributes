@@ -1,0 +1,22 @@
+# Normalize text files to LF in the repository; each checkout uses its platform's line endings.
+* text=auto
+
+# Scripts that must keep a specific line ending wherever they are checked out.
+gradlew          text eol=lf
+*.sh             text eol=lf
+*.bat            text eol=crlf
+*.cmd            text eol=crlf
+
+# Byte-exact content: never convert line endings.
+# authors.json is Ed25519-signed over its exact bytes.
+authors.json     -text
+authors/**       -text
+# Installer test fixtures reproduce real launcher files, including their original line endings.
+installer/testdata/** -text
+
+# Binary files.
+*.png            binary
+*.xcf            binary
+*.jar            binary
+*.dll            binary
+*.exe            binary
