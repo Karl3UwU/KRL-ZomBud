@@ -61,27 +61,6 @@ void init_instrument_dll() {
     }
 }
 
-void check_and_apply_update(const char* jarPath) {
-    char newJarPath[1024];
-    wsprintf(newJarPath, "%s.new", jarPath);
-
-    // Check if .new file exists
-    DWORD attrs = GetFileAttributesA(newJarPath);
-    if (attrs == INVALID_FILE_ATTRIBUTES || (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-        return; // No update pending
-    }
-
-    // Update is pending - apply it
-    write_msg("[zbNative] Pending update detected, applying...\n");
-
-    // Rename .new file to JAR file, replacing existing file if it exists
-    if (MoveFileExA(newJarPath, jarPath, MOVEFILE_REPLACE_EXISTING)) {
-        write_msg("[zbNative] Successfully applied update\n");
-    } else {
-        write_msg("[zbNative] Error: Failed to apply update\n");
-    }
-}
-
 int build_agent_options(const char* tail, char* out, int outSize) {
     int jarLen = lstrlenA(ZB_JAR);
     int tailLen = tail == NULL ? 0 : lstrlenA(tail);
@@ -123,8 +102,8 @@ __declspec(dllexport) int Agent_OnLoad(void* jvm, char* tail, void* reserved) {
         return -1;
     }
 
-    // Check for pending update before loading the agent
-    check_and_apply_update(ZB_JAR);
+    /* Self-updating is disabled: the loader never swaps in a pending "<jar>.new" file
+     * (see SelfUpdater.java). Updates are installed manually until KRL ZomBud has its own release signing. */
 
     return invoke_agent(pAgent_OnLoad, jvm, tail, reserved);
 }

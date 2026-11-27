@@ -142,7 +142,9 @@ The solution is `zbNative.dll`, a native library that:
 1. Adds `jre64\bin` to the DLL load path
 2. Proxies calls to `instrument.dll`
 3. Automatically loads `ZombieBuddy.jar` as a Java agent
-4. **Handles automatic updates**: On startup, `zbNative.dll` checks if `ZombieBuddy.jar.new` exists (created when a newer version is detected via Steam mod update but the JAR couldn't be replaced during runtime). If found, it automatically replaces `ZombieBuddy.jar` with the new version before loading it.
+
+Self-updating is disabled in KRL ZomBud: neither the agent nor `zbNative.dll` ever replaces the jar. (Upstream swapped in a
+`.jar.new` file signed by the upstream maintainer.) To update, run the installer again or copy the new files.
 
 This is why Windows users must:
 - Copy both `ZombieBuddy.jar` and `zbNative.dll` to the game directory
