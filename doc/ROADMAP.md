@@ -61,9 +61,12 @@ single explicit `LoaderContext`, and everything a mod can touch lives in `api`.
    first loads (no retransformation). Changing Java mods then needs a game restart, as in Fabric. *Recommended: yes.*
 5. **Trust model.** Replace the hand-maintained author registry with signatures bound to the Workshop uploader through
    Steam's API, plus per-hash approvals. Decide whether unsigned mods stay allowed by default.
-6. **CI without the proprietary game jar.** The game jar can't be committed or downloaded in public CI. Options: a
-   generated signature-only stub jar, a self-hosted runner with the game installed, or both (stubs for compile and unit
-   tests, self-hosted runner for integration tests). Check the legal side of stubs before publishing them.
+6. **CI without the proprietary game jar.** The game jar can't be committed or downloaded in public CI.
+   - *Decided: no self-hosted runner.* The maintainer's PC is a personal machine, not build infrastructure.
+   - For now, CI builds the native shim and the installer and checks the Gradle setup. The Java compile and the test
+     suites run locally before merging.
+   - Still open: a generated signature-only stub jar so CI can compile and run unit tests. Check the legal side of
+     stubs before publishing them.
 
 ## Phases
 
@@ -74,7 +77,8 @@ single explicit `LoaderContext`, and everything a mod can touch lives in `api`.
 - Developer setup guide (`doc/Development.md`) and `tools/decompile-game.ps1` for a local, never-committed game reference.
 
 **Phase 1: reproducible builds and CI**
-- GitHub Actions for the native shim, the Go installer and (per decision 6) the Java build and tests.
+- GitHub Actions for the native shim, the Go installer and the Gradle setup (`.github/workflows/ci.yml`).
+- Java compile and unit tests in CI once a stub jar exists (decision 6).
 - Release workflow that builds, tests and publishes artifacts with checksums.
 
 **Phase 2: restructure without behavior changes**

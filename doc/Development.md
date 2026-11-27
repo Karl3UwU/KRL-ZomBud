@@ -35,6 +35,14 @@ cd java
 - `test_vanilla`: runs without the agent.
 - `test_patched`: runs with the built jar attached as a Java agent and applies the patches in `testpatches/`.
 
+### What CI checks, and what it doesn't
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request. It builds `zbNative.dll`, runs the installer's
+Go tests on Windows and Linux, and checks that the Gradle setup loads and provisions JDK 25.
+
+CI can't compile the Java code or run its tests: that needs `projectzomboid.jar`, which can't be used there. Run the
+build and all three test suites locally before you open or merge a pull request.
+
 ## Native loader (`zbNative.dll`)
 
 ```powershell
