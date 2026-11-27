@@ -8,13 +8,9 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -25,15 +21,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Fetches {@value #REMOTE_URL} and caches it under {@code ~/.zombie_buddy/}{@value #CACHE_FILE_NAME}.
+ * The known-authors registry: SteamID64 to display name and Ed25519 ZBS public keys.
+ *
+ * <p>Read only from the copy of {@code authors.json} bundled in the agent jar ({@value #BUNDLED_RESOURCE}).
+ * Nothing is fetched from the network and no cache file is read or written, so startup does not depend on
+ * GitHub (upstream downloaded the file from its repository on every start). If the resource is missing or
+ * its signature does not verify, the registry is empty. Authors who are not in it are simply unknown, which
+ * never makes a mod trusted: a {@code .zbs} signature must still verify against a key from another source.
  *
  * <p>File format: JSON object with {@code updated_at}, {@code authors}, and {@code signature} fields.
  * The signature is Ed25519 over {@code "ZBAuthors:" + sha256hex(file_with_signature_value_cleared)},
  * verified against the hardcoded {@link #AUTHORS_PUBKEY_HEX}.
  */
 public final class KnownAuthors {
-    public static final String REMOTE_URL      = "https://raw.githubusercontent.com/zed-0xff/ZombieBuddy/refs/heads/master/authors.json";
-    public static final String CACHE_FILE_NAME = "authors.json";
+    /** Classpath location of the bundled registry (copied byte-for-byte from the repo root at build time). */
+    public static final String BUNDLED_RESOURCE = "/authors.json";
 
     // Ed25519 public key for verifying authors.json. Same key as ZBS signing key, baked into
     // the JAR (which is X.509-signed), so it can't be tampered with at runtime.
@@ -62,32 +64,21 @@ public final class KnownAuthors {
 
     private KnownAuthors() {}
 
-    public static Path cachePath() {
-        return Agent.configDir().resolve(CACHE_FILE_NAME);
-    }
-
     /**
-     * Refreshes from the network when possible; verifies signature before caching.
-     * Falls back to the local cache (also re-verified). Returns empty map if both fail.
+     * Loads the bundled registry and verifies its signature.
+     * Returns an empty map if the resource is missing, unreadable or wrongly signed.
      */
     public static Map<SteamID64, AuthorEntry> loadAuthors() {
-        String body = fetchRemoteBody();
-        if (body != null) {
-            if (verifySignature(body)) {
-                writeCache(body);
-            } else {
-                Logger.warn("authors.json: invalid signature from network, ignoring");
-                body = null;
-            }
-        }
+        String body = readBundledBody();
         if (body == null) {
-            body = readCache();
-            if (body != null && !verifySignature(body)) {
-                Logger.warn("authors.json: invalid signature in cache, ignoring");
-                body = null;
-            }
+            Logger.warn("authors.json: not bundled in the agent jar; known authors list is empty");
+            return Collections.emptyMap();
         }
-        return body != null ? parseAuthorsJSON(body) : Collections.emptyMap();
+        if (!verifySignature(body)) {
+            Logger.warn("authors.json: bundled copy has an invalid signature, ignoring");
+            return Collections.emptyMap();
+        }
+        return parseAuthorsJSON(body);
     }
 
     public static Map<SteamID64, String> loadSteamIdToDisplayName() {
@@ -145,51 +136,16 @@ public final class KnownAuthors {
         }
     }
 
-    private static void writeCache(String body) {
-        try {
-            Files.createDirectories(Agent.configDir());
-            Utils.writeFileAtomic(cachePath(), body, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            Logger.warn("Could not write author names cache: " + e.getMessage());
-        }
-    }
-
-    private static String readCache() {
-        try {
-            Path p = cachePath();
-            if (Files.isRegularFile(p)) {
-                return Files.readString(p, StandardCharsets.UTF_8);
+    static String readBundledBody() {
+        try (InputStream in = KnownAuthors.class.getResourceAsStream(BUNDLED_RESOURCE)) {
+            if (in == null) {
+                return null;
             }
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            Logger.warn("Could not read authors cache: " + e.getMessage());
+            Logger.warn("Could not read bundled authors.json: " + e.getMessage());
+            return null;
         }
-        return null;
-    }
-
-    private static String fetchRemoteBody() {
-        String cached = SteamWorkshop.getCachedBody(REMOTE_URL, "");
-        if (cached != null) return cached;
-        try {
-            HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(REMOTE_URL))
-                .timeout(SteamWorkshop.HTTP_TIMEOUT)
-                .header("User-Agent", "ZombieBuddy/KnownAuthors (Java; +https://github.com/zed-0xff/ZombieBuddy)")
-                .GET()
-                .build();
-            HttpResponse<String> resp = SteamWorkshop.http().send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if (resp.statusCode() == 200) {
-                String body = resp.body();
-                SteamWorkshop.putCachedBody(REMOTE_URL, "", body);
-                return body;
-            }
-            Logger.warn("Authors list HTTP " + resp.statusCode());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            Logger.warn("Authors list fetch interrupted");
-        } catch (IOException e) {
-            Logger.warn("Authors list fetch failed: " + e.getMessage());
-        }
-        return null;
     }
 
     static Map<SteamID64, AuthorEntry> parseAuthorsJSON(String body) {

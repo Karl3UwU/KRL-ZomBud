@@ -85,6 +85,12 @@ jar {
     }
 }
 
+// The signed known-authors registry, bundled byte-for-byte (no filtering). KnownAuthors reads only this copy
+// and verifies its signature; nothing is downloaded at runtime. authors.json itself is never modified by the build.
+processResources {
+    from(file('../authors.json'))
+}
+
 shadowJar {
     archiveBaseName.set(MOD_ID)
     archiveClassifier.set("")
