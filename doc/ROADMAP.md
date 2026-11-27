@@ -46,8 +46,12 @@ single explicit `LoaderContext`, and everything a mod can touch lives in `api`.
 
 ## Decisions to make before the big changes
 
-1. **Name and identity.** A new mod id and Workshop item avoid clashing with upstream's `ZombieBuddy` id. If we keep
-   compatibility (decision 2), the loader can still satisfy `require=\ZombieBuddy` for existing mods.
+1. **Name and identity.** *Decided: **KRL ZomBud**.*
+   - Mod id, Workshop item and jar: `KRLZomBud` (`KRLZomBud.jar`).
+   - Java package root for new code: `io.github.karl3uwu.zombud`.
+   - Upstream's `me.zed_0xff.zombie_buddy.*` classes stay for compatibility (decision 2), so existing mods keep
+     working, and the loader can still satisfy `require=\ZombieBuddy`.
+   - The rename lands with the phase 2 restructure, not as a separate search-and-replace.
 2. **Compatibility with existing ZombieBuddy mods.** *Recommended: yes.* Better FPS, Project Viewpoint and others are
    compiled against `me.zed_0xff.zombie_buddy.*`; without a compatibility layer the new environment starts with zero mods.
 3. **Patching engine.** Keep ByteBuddy behind a cleaner API, or adopt SpongePowered Mixin (injection at call sites,
