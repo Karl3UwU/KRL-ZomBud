@@ -136,7 +136,7 @@ public final class SwingApprovalMain {
             }
         }
         final boolean showTrustColumn = shouldShowTrustColumn(entries, authorsWithBannedMods);
-        JFrame frame = new JFrame("ZombieBuddy — Java mod approval");
+        JFrame frame = new JFrame("KRL ZomBud — Java mod approval");
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
             @Override

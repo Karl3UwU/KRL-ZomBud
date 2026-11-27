@@ -8,6 +8,8 @@ import static me.zed_0xff.zombie_buddy.ModFlags.MF_SIGNED;
 import static me.zed_0xff.zombie_buddy.ModFlags.MF_TRUST_AUTHOR;
 import static me.zed_0xff.zombie_buddy.ModFlags.MF_VALID;
 
+import io.github.karl3uwu.zombud.ModIdentity;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -533,7 +535,7 @@ public class Loader {
         return transformAndLoadJar(jarPath, packageName, phase, null);
     }
 
-    /** Load a patch jar bundled as a classpath resource inside {@code ZombieBuddy.jar}. */
+    /** Load a patch jar bundled as a classpath resource inside the agent jar ({@code KRLZomBud.jar}). */
     static boolean loadResourceJar(String resourceName, String packageName, Phase phase) {
         Logger.debug("Loader.loadResourceJar", resourceName, packageName, phase);
         if (Utils.isBlank(resourceName)) {
@@ -645,7 +647,8 @@ public class Loader {
     }
 
     private static final List<String> PINNED_MOD_ORDER = List.of(
-        "ZombieBuddy",
+        ModIdentity.MOD_ID,
+        ModIdentity.LEGACY_MOD_ID,
         "zdk",
         "ZModUnbork"
     );
@@ -916,10 +919,17 @@ public class Loader {
             boolean shouldSkip = false;
             String skipReason = "";
             
-            // Skip ZombieBuddy itself - it's loaded as a Java agent, not through normal mod loading
+            // Skip ourselves - we're loaded as a Java agent, not through normal mod loading.
+            // Upstream ZombieBuddy's mod has the same package, so it lands here too: its jar is never loaded.
             if (jModInfo.javaPkgName().equals(myPackageName)) {
                 shouldSkip = true;
                 skipReason = " (loaded as Java agent, skipping normal mod loading)" + SelfUpdater.getExclusionReasonSuffix(ctx.jarPath);
+                if (ModIdentity.isLegacyModId(ctx.modId)) {
+                    skipReason = " (upstream ZombieBuddy mod: its Java code is not loaded, " + ModIdentity.DISPLAY_NAME + " is the active agent)";
+                    Logger.warn("Upstream ZombieBuddy mod is enabled together with " + ModIdentity.DISPLAY_NAME
+                        + ". Its Java code is not loaded; mods that require ZombieBuddy are served by " + ModIdentity.MOD_ID
+                        + ". Disable or unsubscribe ZombieBuddy to avoid confusion.");
+                }
             }
             
             // Check if this mod's package name appears in a later mod

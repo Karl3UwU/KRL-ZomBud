@@ -6,7 +6,7 @@ Global Lua helpers exposed by ZombieBuddy for inspecting and manipulating Java/L
 >
 > macOS / Linux:
 > ```
-> -javaagent:ZombieBuddy.jar=experimental --
+> -javaagent:KRLZomBud.jar=experimental --
 > ```
 > Windows:
 > ```

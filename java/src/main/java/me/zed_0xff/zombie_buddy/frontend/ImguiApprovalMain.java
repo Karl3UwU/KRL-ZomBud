@@ -87,7 +87,7 @@ public final class ImguiApprovalMain {
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1);
             }
 
-            window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "ZombieBuddy Java Mod Approval", 0, 0);
+            window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "KRL ZomBud: Java Mod Approval", 0, 0);
             if (window == 0) {
                 throw new IllegalStateException("Could not create GLFW window");
             }

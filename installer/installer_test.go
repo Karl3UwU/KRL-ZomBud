@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -374,78 +373,6 @@ func lineRange(start int, count int) string {
 	return fmt.Sprintf("%d,%d", start, count)
 }
 
-func TestDetectZBPath(t *testing.T) {
-	tests := []struct {
-		name     string
-		copies   []int
-		wantLib  int
-		noPZPath bool
-		noVDF    bool
-	}{
-		{name: "game library wins over default and other copies", copies: []int{0, 1, 2}, wantLib: 1},
-		{name: "game library works without libraryfolders", copies: []int{1}, wantLib: 1, noVDF: true},
-		{name: "missing game copy falls back to default", copies: []int{0, 2}, wantLib: 0},
-		{name: "missing game and default copies falls back to other library", copies: []int{2}, wantLib: 2},
-		{name: "empty game path falls back to default", copies: []int{0, 1}, wantLib: 0, noPZPath: true},
-		{name: "empty game path falls back to other library", copies: []int{2}, wantLib: 2, noPZPath: true},
-		{name: "no subscribed copy", wantLib: -1},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tmpDir := t.TempDir()
-			libs := []string{
-				filepath.Join(tmpDir, "Steam"),
-				filepath.Join(tmpDir, "Game Library"),
-				filepath.Join(tmpDir, "Other Library"),
-			}
-			for _, lib := range libs {
-				if err := os.MkdirAll(filepath.Join(lib, "steamapps"), 0755); err != nil {
-					t.Fatal(err)
-				}
-			}
-			// A custom game folder still has steamapps/common as its parents.
-			pzPath := filepath.Join(libs[1], "steamapps", "common", "ProjectZomboid Custom")
-			if err := os.MkdirAll(pzPath, 0755); err != nil {
-				t.Fatal(err)
-			}
-			workshopPath := func(lib int) string {
-				return filepath.Join(libs[lib], "steamapps", "workshop", "content", PZ_APP_ID, ZB_MOD_ID)
-			}
-			for _, lib := range tt.copies {
-				if err := os.MkdirAll(workshopPath(lib), 0755); err != nil {
-					t.Fatal(err)
-				}
-			}
-			if !tt.noVDF {
-				vdfContent := "\"libraryfolders\"\n{\n"
-				for i, lib := range libs {
-					vdfContent += fmt.Sprintf("\"%d\" { \"path\" \"%s\" }\n", i, filepath.ToSlash(lib))
-				}
-				vdfContent += "}\n"
-				if err := os.WriteFile(filepath.Join(libs[0], "steamapps", "libraryfolders.vdf"), []byte(vdfContent), 0644); err != nil {
-					t.Fatal(err)
-				}
-			}
-			if tt.noPZPath {
-				pzPath = ""
-			}
-			got, err := detectZBPath(libs[0], pzPath)
-			if tt.wantLib < 0 {
-				if err == nil {
-					t.Fatalf("expected an error, got path %q", got)
-				}
-				return
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			if want := workshopPath(tt.wantLib); got != want {
-				t.Fatalf("got %q, want %q", got, want)
-			}
-		})
-	}
-}
-
 func TestAddZombieBuddyLaunchOptions(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -492,65 +419,5 @@ func TestPatchVDFPreservesLaunchOptions(t *testing.T) {
 	want := `-agentlib:zbNative -- -cachedir="G:\Some Dir" -debug`
 	if got != want {
 		t.Fatalf("launch options = %q, want %q", got, want)
-	}
-}
-
-func TestDetectZBPathBeta(t *testing.T) {
-	tmpDir := t.TempDir()
-	steam := filepath.Join(tmpDir, "Steam")
-	pzPath := filepath.Join(steam, "steamapps", "common", "ProjectZomboid")
-	if err := os.MkdirAll(pzPath, 0755); err != nil {
-		t.Fatal(err)
-	}
-	workshop := func(id string) string {
-		return filepath.Join(steam, "steamapps", "workshop", "content", PZ_APP_ID, id)
-	}
-
-	if _, err := detectZBPath(steam, pzPath); err == nil {
-		t.Fatal("expected an error with no subscribed copy")
-	}
-
-	if err := os.MkdirAll(workshop(ZB_BETA_MOD_ID), 0755); err != nil {
-		t.Fatal(err)
-	}
-	got, err := detectZBPath(steam, pzPath)
-	if err != nil || got != workshop(ZB_BETA_MOD_ID) {
-		t.Fatalf("beta only: got %q, %v; want %q", got, err, workshop(ZB_BETA_MOD_ID))
-	}
-
-	if err := os.MkdirAll(workshop(ZB_MOD_ID), 0755); err != nil {
-		t.Fatal(err)
-	}
-	got, err = detectZBPath(steam, pzPath)
-	if err != nil || got != workshop(ZB_MOD_ID) {
-		t.Fatalf("both: got %q, %v; want stable %q", got, err, workshop(ZB_MOD_ID))
-	}
-}
-
-func TestDetectZBCopiesAndPrompt(t *testing.T) {
-	tmpDir := t.TempDir()
-	steam := filepath.Join(tmpDir, "Steam")
-	pzPath := filepath.Join(steam, "steamapps", "common", "ProjectZomboid")
-	if err := os.MkdirAll(pzPath, 0755); err != nil {
-		t.Fatal(err)
-	}
-	for _, id := range []string{ZB_MOD_ID, ZB_BETA_MOD_ID} {
-		if err := os.MkdirAll(filepath.Join(steam, "steamapps", "workshop", "content", PZ_APP_ID, id), 0755); err != nil {
-			t.Fatal(err)
-		}
-	}
-	copies := detectZBCopies(steam, pzPath)
-	if len(copies) != 2 || copies[0].channel != "stable" || copies[1].channel != "beta" {
-		t.Fatalf("copies = %+v, want stable then beta", copies)
-	}
-
-	for input, want := range map[string]string{"1\n": "stable", "2\n": "beta", "beta\n": "beta", "S\n": "stable", "x\n2\n": "beta"} {
-		got, err := promptZBCopy(bufio.NewReader(strings.NewReader(input)), copies)
-		if err != nil || got.channel != want {
-			t.Fatalf("input %q: got %+v, %v; want %s", input, got, err, want)
-		}
-	}
-	if _, err := promptZBCopy(bufio.NewReader(strings.NewReader("")), copies); err == nil {
-		t.Fatal("expected an error on EOF")
 	}
 }

@@ -55,12 +55,12 @@ jobs:
         env:
           GOOS: windows
           GOARCH: amd64
-        run: go build -o ZombieBuddyInstaller.exe
+        run: go build -o KRLZomBudInstaller.exe
       - uses: actions/upload-artifact@v7
         if: matrix.os == 'windows-latest'
         with:
-          name: ZombieBuddyInstaller.exe
-          path: installer/ZombieBuddyInstaller.exe
+          name: KRLZomBudInstaller.exe
+          path: installer/KRLZomBudInstaller.exe
           if-no-files-found: error
 
   java:

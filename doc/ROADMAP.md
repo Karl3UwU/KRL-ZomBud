@@ -51,7 +51,8 @@ single explicit `LoaderContext`, and everything a mod can touch lives in `api`.
    - Java package root for new code: `io.github.karl3uwu.zombud`.
    - Upstream's `me.zed_0xff.zombie_buddy.*` classes stay for compatibility (decision 2), so existing mods keep
      working, and the loader can still satisfy `require=\ZombieBuddy`.
-   - The rename lands with the phase 2 restructure, not as a separate search-and-replace.
+   - The user-visible rename (mod id, jar, installer, `require=\ZombieBuddy` compatibility) landed in M0; see
+     [RENAME.md](RENAME.md). Moving the legacy package itself waits for the phase 2 restructure.
 2. **Compatibility with existing ZombieBuddy mods.** *Recommended: yes.* Better FPS, Project Viewpoint and others are
    compiled against `me.zed_0xff.zombie_buddy.*`; without a compatibility layer the new environment starts with zero mods.
 3. **Patching engine.** Keep ByteBuddy behind a cleaner API, or adopt SpongePowered Mixin (injection at call sites,

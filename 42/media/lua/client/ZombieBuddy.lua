@@ -70,14 +70,14 @@ local function checkZombieBuddyInstallation()
         end
         
         -- Get the mod directory to find JAR files
-        local modInfo = getModInfoByID("ZombieBuddy")
+        local modInfo = getModInfoByID("KRLZomBud")
         local modDir = modInfo and modInfo:getDir() or nil
         if not modDir then
             -- Fallback: construct mods directory path
             local docFolder = getMyDocumentFolder()
             if docFolder then
                 local sep = getFileSeparator()
-                modDir = docFolder .. sep .. "mods" .. sep .. "ZombieBuddy"
+                modDir = docFolder .. sep .. "mods" .. sep .. "KRLZomBud"
             end
         end
         
@@ -89,11 +89,11 @@ local function checkZombieBuddyInstallation()
         if isSystemWindows() then
             cmdLine = "-agentlib:zbNative --"
         else
-            cmdLine = "-javaagent:ZombieBuddy.jar --"
+            cmdLine = "-javaagent:KRLZomBud.jar --"
         end
         
         -- Build the file list (zbNative.dll only for Windows)
-        local fileList = " - ZombieBuddy.jar <LINE>"
+        local fileList = " - KRLZomBud.jar <LINE>"
         if isSystemWindows() then
             fileList = fileList .. " - zbNative.dll <LINE>"
         end
@@ -101,7 +101,7 @@ local function checkZombieBuddyInstallation()
         -- Get the message template and replace placeholders with actual paths, command line, and file list
         local message = ""
         if isSystemWindows() then
-            local releasesURL = "https://github.com/zed-0xff/ZombieBuddy/releases/tag/windows_installer"
+            local releasesURL = "https://github.com/Karl3UwU/KRL-ZomBud/releases"
             message = getText("UI_ZB_Install_Windows", releasesURL, srcDir, dstDir, cmdLine)
         else
             message = getText("UI_ZB_Install_Unix", srcDir, dstDir, cmdLine, fileList)

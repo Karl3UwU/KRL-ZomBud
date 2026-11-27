@@ -93,7 +93,7 @@ Set up a Gradle project with the following dependencies:
 ```gradle
 dependencies {
     // ZombieBuddy API (compile-only, provided at runtime)
-    compileOnly files("path/to/ZombieBuddy.jar")
+    compileOnly files("path/to/KRLZomBud.jar")
     
     // Project Zomboid classes (compile-only)
     compileOnly files("path/to/ProjectZomboid/Contents/Java")

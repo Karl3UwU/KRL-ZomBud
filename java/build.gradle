@@ -68,9 +68,10 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 
-// Fixed name: zbNative.dll and 42/mod.info load "ZombieBuddy.jar". (Deriving it from the checkout folder
-// name produced a differently named jar whenever the repo was cloned into another folder.)
-def MOD_ID = 'ZombieBuddy'
+// Fixed name: zbNative.dll, 42/mod.info and the installer all expect "KRLZomBud.jar" (see doc/RENAME.md).
+// Keep it in sync with ModIdentity.MOD_ID. (Deriving it from the checkout folder name produced a differently
+// named jar whenever the repo was cloned into another folder.)
+def MOD_ID = 'KRLZomBud'
 jar {
     archiveBaseName.set(MOD_ID)
     archiveClassifier.set("plain")
@@ -533,7 +534,7 @@ task test_patched(type: Test) {
     useJUnitPlatform()
     dependsOn testJar
     dependsOn testpatchesJar
-    dependsOn shadowJar  // Fat shaded ZombieBuddy.jar (javaagent)
+    dependsOn shadowJar  // Fat shaded KRLZomBud.jar (javaagent)
 
     // Use testPatched source set
     testClassesDirs = sourceSets.testPatched.output.classesDirs

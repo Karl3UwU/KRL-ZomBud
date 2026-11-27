@@ -2,7 +2,7 @@
 
 ## Windows
 
-You can uninstall automatically by running `ZombieBuddyInstaller.exe` again and choosing **Uninstall ZombieBuddy**. The installer shows a confirmation preview before applying changes.
+You can uninstall automatically by running `KRLZomBudInstaller.exe` again and choosing **Uninstall KRL ZomBud**. The installer shows a confirmation preview before applying changes.
 
 Manual uninstall:
 
@@ -13,9 +13,9 @@ Manual uninstall:
    ```
 
 2. Delete these files from the Project Zomboid game directory:
-   - `ZombieBuddy.jar`
-   - `ZombieBuddy.jar.new`, if present
+   - `KRLZomBud.jar`
    - `zbNative.dll`
+   - `ZombieBuddy.jar` and `ZombieBuddy.jar.new`, if left over from upstream ZombieBuddy (the installer removes these too)
 
 3. Optional: delete ZombieBuddy's config directory if you also want to remove approval decisions and caches:
    - Default location: `%USERPROFILE%\.zombie_buddy`
@@ -26,12 +26,12 @@ Manual uninstall:
 1. Open Project Zomboid properties in Steam and remove the ZombieBuddy launch option:
 
    ```
-   -javaagent:ZombieBuddy.jar ... --
+   -javaagent:KRLZomBud.jar ... --
    ```
 
 2. Delete these files from the Project Zomboid game directory:
-   - `ZombieBuddy.jar`
-   - `ZombieBuddy.jar.new`, if present
+   - `KRLZomBud.jar`
+   - `ZombieBuddy.jar` and `ZombieBuddy.jar.new`, if left over from upstream ZombieBuddy
 
 3. Optional: delete ZombieBuddy's config directory if you also want to remove approval decisions and caches:
    - Default location: `~/.zombie_buddy`

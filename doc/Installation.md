@@ -49,7 +49,7 @@ Pass as a `policy=...` agent argument:
 Example launch options:
 
 - Windows: `-agentlib:zbNative=policy=deny-new --`
-- macOS / Linux: `-javaagent:ZombieBuddy.jar=policy=deny-new --`
+- macOS / Linux: `-javaagent:KRLZomBud.jar=policy=deny-new --`
 
 The policy is locked during `premain`, before any Java mod is on the classpath, so a later-loading Java mod cannot change it at runtime.
 
@@ -73,8 +73,9 @@ Messages go to standard error, including redirected files/pipes. If that handle 
 
 The easiest way to install ZombieBuddy on Windows is using the automated installer:
 
-1. **Download the latest `ZombieBuddyInstaller.exe`** from the [GitHub Releases](https://github.com/zed-0xff/ZombieBuddy/releases/tag/windows_installer) page.
-2. **Run the installer** and choose **Install or update ZombieBuddy**.
+1. **Download the latest `KRLZomBudInstaller.exe`** from the [GitHub Releases](https://github.com/Karl3UwU/KRL-ZomBud/releases) page.
+2. **Put `zbNative.dll` and `KRLZomBud.jar` next to the installer** (the release download has them together), run it
+   and choose **Install KRL ZomBud**.
 3. **Choose what launch mode to patch**:
    - **Both**: patches `ProjectZomboid64.json` for Normal Launch and `ProjectZomboid64.bat` for Alternate Launch. It removes an existing ZombieBuddy Steam launch option after showing that change in the confirmation preview, so Normal Launch requests the native agent only once.
    - **Normal Launch**: then choose `ProjectZomboid64.json`, Steam launch options, or both.
@@ -85,8 +86,13 @@ The easiest way to install ZombieBuddy on Windows is using the automated install
 The installer will:
 
 - Detect your Steam and Project Zomboid installation folders.
-- Find the ZombieBuddy Workshop content (ensure you are [subscribed on Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3619862853)).
-- Copy `zbNative.dll` and `ZombieBuddy.jar` to your game directory.
+- Find `zbNative.dll` and `KRLZomBud.jar` next to the installer (or in its `libs\` folder, or in
+  `%USERPROFILE%\Zomboid\mods\KRLZomBud\libs`). KRL ZomBud has no Workshop item yet; the upstream ZombieBuddy Workshop
+  items are not used.
+- Copy `zbNative.dll` and `KRLZomBud.jar` to your game directory, and delete upstream's `ZombieBuddy.jar` and
+  `ZombieBuddy.jar.new` there if present.
+- Replace an old upstream `-javaagent:ZombieBuddy.jar` hook with `-agentlib:zbNative`, so only one agent starts (see
+  [RENAME.md](RENAME.md)).
 - Patch the selected launcher locations:
   - `ProjectZomboid64.json` for Normal Launch.
   - Steam launch options with `-agentlib:zbNative --`, if selected.
@@ -123,12 +129,12 @@ Extract to your Project Zomboid mods directory:
 ### 3. Copy files to the game directory
 
 **macOS and Linux**:
-- Copy `ZombieBuddy.jar` from the mod's `libs/` directory to:
+- Copy `KRLZomBud.jar` from the mod's `libs/` directory to:
   - **macOS**: `~/Library/Application Support/Steam/steamapps/common/ProjectZomboid/Project Zomboid.app/Contents/Java/`
   - **Linux**: The equivalent Java directory in your Steam installation (typically `~/.steam/steam/steamapps/common/ProjectZomboid/projectzomboid/`)
 
 **Windows**:
-- Copy **both** `ZombieBuddy.jar` and `zbNative.dll` from the mod's `libs/` directory to the game directory:
+- Copy **both** `KRLZomBud.jar` and `zbNative.dll` from the mod's `libs/` directory to the game directory:
   - Typically: `C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid\`
   - Or wherever your Steam installation is located
 
@@ -136,21 +142,21 @@ Extract to your Project Zomboid mods directory:
 
 ### Why is zbNative.dll needed on Windows?
 
-On Windows, when using `-javaagent:ZombieBuddy.jar`, the JRE attempts to load `jre64\bin\instrument.dll` (the path is hardcoded in the JRE). However, this DLL depends on `java.dll` and `jli.dll`, which are also located in `jre64\bin` but are not on the DLL load path. This causes the loading of `instrument.dll` to fail.
+On Windows, when using `-javaagent:KRLZomBud.jar`, the JRE attempts to load `jre64\bin\instrument.dll` (the path is hardcoded in the JRE). However, this DLL depends on `java.dll` and `jli.dll`, which are also located in `jre64\bin` but are not on the DLL load path. This causes the loading of `instrument.dll` to fail.
 
 The solution is `zbNative.dll`, a native library that:
 1. Adds `jre64\bin` to the DLL load path
 2. Proxies calls to `instrument.dll`
-3. Automatically loads `ZombieBuddy.jar` as a Java agent
+3. Automatically loads `KRLZomBud.jar` as a Java agent
 
 Self-updating is disabled in KRL ZomBud: neither the agent nor `zbNative.dll` ever replaces the jar. (Upstream swapped in a
 `.jar.new` file signed by the upstream maintainer.) To update, run the installer again or copy the new files.
 
 This is why Windows users must:
-- Copy both `ZombieBuddy.jar` and `zbNative.dll` to the game directory
-- Use only `-agentlib:zbNative --` in launch options (it automatically loads `ZombieBuddy.jar`)
+- Copy both `KRLZomBud.jar` and `zbNative.dll` to the game directory
+- Use only `-agentlib:zbNative --` in launch options (it automatically loads `KRLZomBud.jar`)
 
-On macOS and Linux, this workaround is not needed, so only `ZombieBuddy.jar` is required and you use `-javaagent:ZombieBuddy.jar --` directly.
+On macOS and Linux, this workaround is not needed, so only `KRLZomBud.jar` is required and you use `-javaagent:KRLZomBud.jar --` directly.
 
 ### 4. Modify game launch options
 
@@ -159,19 +165,19 @@ Open Steam and go to Project Zomboid properties, then navigate to "Launch Option
 **macOS and Linux**:
 
 ```
--javaagent:ZombieBuddy.jar --
+-javaagent:KRLZomBud.jar --
 ```
 
 Or with verbosity for debugging (shows patch transformations):
 
 ```
--javaagent:ZombieBuddy.jar=verbosity=1 --
+-javaagent:KRLZomBud.jar=verbosity=1 --
 ```
 
 Or with maximum verbosity (shows all debug output):
 
 ```
--javaagent:ZombieBuddy.jar=verbosity=2 --
+-javaagent:KRLZomBud.jar=verbosity=2 --
 ```
 
 **Windows**:
@@ -192,11 +198,11 @@ Or with maximum verbosity:
 -agentlib:zbNative=verbosity=2 --
 ```
 
-> **Note**: `zbNative.dll` automatically loads `ZombieBuddy.jar` as a Java agent, so you don't need to specify `-javaagent:ZombieBuddy.jar` separately.
+> **Note**: `zbNative.dll` automatically loads `KRLZomBud.jar` as a Java agent, so you don't need to specify `-javaagent:KRLZomBud.jar` separately.
 
 **Important notes:**
 - **⚠️ The `--` at the end is mandatory** - do not omit it!
-- **Windows Normal Launch via Steam launch options**: Use `-agentlib:zbNative --` (it automatically loads `ZombieBuddy.jar`).
+- **Windows Normal Launch via Steam launch options**: Use `-agentlib:zbNative --` (it automatically loads `KRLZomBud.jar`).
 - **Windows Alternate Launch**: Steam launch options are passed to `ProjectZomboid64.bat` as game arguments, so `-agentlib:zbNative --` there is not enough. Add `-agentlib:zbNative` to the `SET _JAVA_OPTIONS=` line in `ProjectZomboid64.bat`, or use the installer and choose Alternate Launch / Both.
 - **Verbosity levels**:
   - `verbosity=0` (default): Errors only

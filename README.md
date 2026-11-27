@@ -41,8 +41,8 @@ Previously, Java mods for Project Zomboid required bundling `.class` files and m
 
 ### For End Users
 
-1. **Windows**: Download and run [ZombieBuddyInstaller.exe](https://github.com/zed-0xff/ZombieBuddy/releases/tag/windows_installer), then choose the launch modes to patch. The installer also has an uninstall option and shows a confirmation preview before applying changes.
-2. **macOS/Linux**: Copy `ZombieBuddy.jar` to the game directory and add `-javaagent:ZombieBuddy.jar --` to launch options
+1. **Windows**: Download and run [KRLZomBudInstaller.exe](https://github.com/Karl3UwU/KRL-ZomBud/releases), then choose the launch modes to patch. The installer also has an uninstall option and shows a confirmation preview before applying changes.
+2. **macOS/Linux**: Copy `KRLZomBud.jar` to the game directory and add `-javaagent:KRLZomBud.jar --` to launch options
 
 📖 **[Full Installation Guide](doc/Installation.md)** - Security warnings, manual installation, policy modes
 

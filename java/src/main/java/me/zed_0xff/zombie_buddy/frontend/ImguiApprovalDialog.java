@@ -143,7 +143,7 @@ final class ImguiApprovalDialog {
                 0.5f,
                 0.5f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowTitleAlign, 0.5f, 0.5f);
-        boolean visible = ImGui.begin("ZombieBuddy Java Mod Approval", open, ImGuiWindowFlags.NoCollapse);
+        boolean visible = ImGui.begin("KRL ZomBud: Java Mod Approval", open, ImGuiWindowFlags.NoCollapse);
         ImGui.popStyleVar();
         if (!visible) {
             ImGui.end();

@@ -36,7 +36,7 @@ public class ZombieBuddy {
     }
     
     public static String getFullVersionString() {
-        return "ZombieBuddy v" + version;
+        return io.github.karl3uwu.zombud.ModIdentity.DISPLAY_NAME + " v" + version;
     }
 
     public static void setAutoFixModOrder(boolean value) {

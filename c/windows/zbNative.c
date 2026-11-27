@@ -4,7 +4,8 @@
 
 HMODULE hOrig = NULL;
 
-#define ZB_JAR "ZombieBuddy.jar"
+/* Must match MOD_ID in java/build.gradle and ModIdentity.JAR_NAME (see doc/RENAME.md). */
+#define ZB_JAR "KRLZomBud.jar"
 // Total payload capacity, including the JAR prefix and trailing NUL.
 #define AGENT_OPTIONS_MAX 4096
 

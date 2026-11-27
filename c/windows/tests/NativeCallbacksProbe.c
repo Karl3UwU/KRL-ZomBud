@@ -25,12 +25,12 @@ static void require_clear(void) {
 }
 static int record_load(void *vm, char *options, void *reserved) {
     require(!missingJvm && vm == &vmToken && reserved == &reservedToken
-        && !lstrcmpA(options, "ZombieBuddy.jar=probe"), 52);
+        && !lstrcmpA(options, "KRLZomBud.jar=probe"), 52);
     loads++; return 23;
 }
 static int record_attach(void *vm, char *options, void *reserved) {
     require(!missingJvm && vm == &vmToken && reserved == &reservedToken
-        && !lstrcmpA(options, "ZombieBuddy.jar=probe"), 53);
+        && !lstrcmpA(options, "KRLZomBud.jar=probe"), 53);
     attaches++; return 29;
 }
 static void record_unload(void *vm) {

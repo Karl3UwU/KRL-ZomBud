@@ -63,7 +63,7 @@ record Config(
             Path path = jsonPath();
             Files.createDirectories(path.getParent());
             Utils.writeFileAtomic(path, ZBGson.PRETTY.toJson(config != null ? config : defaultConfig()), StandardCharsets.UTF_8);
-            Logger.info("ZombieBuddy config written to " + path);
+            Logger.info("KRL ZomBud config written to " + path);
         } catch (Exception e) {
             Logger.error("Could not save config: " + e);
         }
