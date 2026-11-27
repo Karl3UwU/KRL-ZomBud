@@ -121,6 +121,20 @@ shadowJar {
     exclude 'META-INF/versions/**'
     exclude '*.dll'
 
+    // Dependencies' own LICENSE/NOTICE files collide at the same paths (only the first would survive), so they are
+    // replaced by our NOTICE plus the full third-party license texts, which cover every bundled library.
+    exclude 'META-INF/LICENSE'
+    exclude 'META-INF/LICENSE.md'
+    exclude 'META-INF/NOTICE'
+    exclude 'META-INF/licenses/**'
+    from('..') {
+        include 'LICENSE.txt', 'NOTICE'
+        into 'META-INF'
+    }
+    from('../third_party/licenses') {
+        into 'META-INF/third-party-licenses'
+    }
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
