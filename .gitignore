@@ -12,3 +12,6 @@
 
 build
 tmp
+
+# Decompiled game code must never be committed (see tools/decompile-game.ps1)
+pz-src/

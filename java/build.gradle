@@ -17,6 +17,26 @@ if (!rawGameClasspath) {
 if (!rawGameClasspath) {
     rawGameClasspath = System.getProperty("pz.classpath")
 }
+// Convenience: point at the game install instead of the jar.
+// Set via -PpzDir=<dir>, env PZ_DIR, or `pzDir=...` in ~/.gradle/gradle.properties.
+if (!rawGameClasspath) {
+    def pzDir = project.findProperty('pzDir')?.toString()?.trim() ?: System.getenv('PZ_DIR')?.trim()
+    if (pzDir) {
+        // Windows/Linux keep the jar in the install folder; macOS keeps it inside the app bundle.
+        def candidates = [
+            "projectzomboid.jar",
+            "projectzomboid/projectzomboid.jar",
+            "Project Zomboid.app/Contents/Java/projectzomboid.jar",
+            "Contents/Java/projectzomboid.jar",
+        ].collect { file("${pzDir}/${it}") }
+        def pzJar = candidates.find { it.isFile() }
+        if (pzJar == null) {
+            throw new GradleException("pzDir is set to '${pzDir}', but projectzomboid.jar was not found. Looked in:\n  " +
+                candidates.join("\n  "))
+        }
+        rawGameClasspath = pzJar.absolutePath
+    }
+}
 def GAME_CLASSPATH = []
 if (rawGameClasspath) {
     GAME_CLASSPATH = rawGameClasspath.split(',').collect { path -> file(path.trim()) }
@@ -48,7 +68,9 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 
-def MOD_ID = project.projectDir.parentFile.name
+// Fixed name: zbNative.dll and 42/mod.info load "ZombieBuddy.jar". (Deriving it from the checkout folder
+// name produced a differently named jar whenever the repo was cloned into another folder.)
+def MOD_ID = 'ZombieBuddy'
 jar {
     archiveBaseName.set(MOD_ID)
     archiveClassifier.set("plain")
@@ -369,7 +391,8 @@ compileJavaTask.doFirst {
         def outputDir = destinationDirectory.get().asFile
         if (!hasClassFiles(outputDir)) {
             throw new RuntimeException(
-                "Game classpath must be set: -PgameClasspath=<path1>,<path2>,... and/or env PZ_CLASSPATH " +
+                "Game classpath must be set: -PpzDir=<game install dir> (or env PZ_DIR), or " +
+                "-PgameClasspath=<path1>,<path2>,... and/or env PZ_CLASSPATH " +
                 "(comma-separated JARs or directories).\n" +
                 "Example: gradle build -PgameClasspath=../../../../../42.13/java/projectzomboid.jar\n" +
                 "Note: Tests can run without game classpath if classes are already compiled."

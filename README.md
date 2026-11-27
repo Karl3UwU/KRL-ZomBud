@@ -1,6 +1,11 @@
-<img src="steam_iconic.png" alt="Iconic!" width="800">
+# ZombieBuddy (fork)
 
-# ZombieBuddy
+> **This is a community fork of [zed-0xff/ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy)**, created to grow it into a
+> Fabric-style modding environment for Project Zomboid: a small stable loader, a richer patching API,
+> build tooling for modders, and open, automated releases. See **[doc/ROADMAP.md](doc/ROADMAP.md)** for the plan.
+>
+> Everything below describes ZombieBuddy as it exists today. All credit for the original work goes to
+> Andrey "Zed" Zaikin. Please report bugs in *this fork* here, not upstream.
 
 A powerful framework for Project Zomboid modders that enables Java bytecode manipulation and runtime patching of game classes using ByteBuddy.
 
@@ -93,9 +98,10 @@ public static class MyPatch {
 - **Windows native loader:** Windows 10/11 x64 for the current game target; runtime-file identity queries must be supported and permitted. See the [Windows loader requirement and diagnostics](doc/Installation.md#windows-native-loader-requirement) for the API floor, filesystem/access requirements and stderr/debug-output capture.
 - **Gradle** (for building Java mods)
 
-## ☕ Support the Project
+## Credits
 
-[![patreon](https://cdn.jsdelivr.net/gh/zed-0xff/ZombieBuddy@master/patreon.png)](https://patreon.com/zed_0xff)
+ZombieBuddy was created by Andrey "Zed" Zaikin. If you want to support the original author, see
+[patreon.com/zed_0xff](https://patreon.com/zed_0xff).
 
 ## License
 
@@ -109,8 +115,9 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## Links
 
-- **GitHub**: https://github.com/zed-0xff/ZombieBuddy
-- **Steam Workshop**: https://steamcommunity.com/sharedfiles/filedetails/?id=3619862853
+- **This fork**: https://github.com/Karl3UwU/ZombieBuddy
+- **Upstream**: https://github.com/zed-0xff/ZombieBuddy
+- **Upstream Steam Workshop item**: https://steamcommunity.com/sharedfiles/filedetails/?id=3619862853
 - **Related**: [ZBSpec](https://github.com/zed-0xff/ZBSpec) - Testing framework for PZ mods
 
 ## Disclaimer

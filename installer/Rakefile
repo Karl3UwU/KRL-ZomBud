@@ -1,9 +1,0 @@
-task :default => [:build, :test]
-
-task :build do
-  sh "GOOS=windows GOARCH=amd64 go build -o ZombieBuddyInstaller.exe"
-end
-
-task :test do
-  sh "go test ./..."
-end

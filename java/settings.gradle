@@ -1,4 +1,4 @@
-// plugins {
-//     // JDK path resolver from java.toolchain.languageVersion
-//     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
-// }
+plugins {
+    // Downloads the JDK requested by java.toolchain (25 by default) when no matching local JDK is installed.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
