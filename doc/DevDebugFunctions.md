@@ -1,8 +1,8 @@
-# ZombieBuddy Dev/Debug Functions
+# KRL ZomBud Dev/Debug Functions
 
-Global Lua helpers exposed by ZombieBuddy for inspecting and manipulating Java/Lua objects. Use from the in-game Lua console or from mod scripts.
+Global Lua helpers exposed by KRL ZomBud for inspecting and manipulating Java/Lua objects. Use from the in-game Lua console or from mod scripts.
 
-> **Note:** ZombieBuddy must be loaded with **experimental mode** enabled.
+> **Note:** KRL ZomBud must be loaded with **experimental mode** enabled.
 >
 > macOS / Linux:
 > ```
@@ -34,7 +34,7 @@ Returns a table describing the object:
 ---
 
 ### `zbmethod(obj)`  
-*Alias for `ZombieBuddy.getCallableInfo(obj)`.*
+*Alias for `KRLZomBud.getCallableInfo(obj)`.*
 
 Returns metadata for a **callable** (Lua function or Java-exposed method):
 
@@ -117,15 +117,15 @@ Reads the game console log file and returns a 1-based table of **lines** that co
 
 ---
 
-## ZombieBuddy class (callable metadata)
+## ZomBud class (callable metadata)
 
-Available as `ZombieBuddy` in Lua:
+Available as `KRLZomBud` in Lua (Java class `io.github.karl3uwu.zombud.api.ZomBud`):
 
-- **`ZombieBuddy.getVersion()`** — Mod version string.
-- **`ZombieBuddy.getFullVersionString()`** — e.g. `"ZombieBuddy v1.0"`.
-- **`ZombieBuddy.getClosureFilename(obj)`** — Filename of a Lua closure, or nil.
-- **`ZombieBuddy.getClosureInfo(obj)`** — Table with `file`, `filename`, `name`, `numParams`, `isVararg`, `line`, `fileLastModified` for a Lua closure; nil otherwise.
-- **`ZombieBuddy.getCallableInfo(obj)`** — Same as `zbmethod(obj)`: metadata for Lua closures and Java callables (including `invokers` for exposed Java methods).
+- **`KRLZomBud.getVersion()`** — Mod version string.
+- **`KRLZomBud.getFullVersionString()`** — e.g. `"KRL ZomBud v1.0"`.
+- **`KRLZomBud.getClosureFilename(obj)`** — Filename of a Lua closure, or nil.
+- **`KRLZomBud.getClosureInfo(obj)`** — Table with `file`, `filename`, `name`, `numParams`, `isVararg`, `line`, `fileLastModified` for a Lua closure; nil otherwise.
+- **`KRLZomBud.getCallableInfo(obj)`** — Same as `zbmethod(obj)`: metadata for Lua closures and Java callables (including `invokers` for exposed Java methods).
 
 ---
 
