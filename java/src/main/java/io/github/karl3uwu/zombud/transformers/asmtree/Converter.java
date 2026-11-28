@@ -27,7 +27,7 @@ import io.github.karl3uwu.zombud.transformers.AnnElements;
 /**
  * For each {@code @Patch.*} annotation that declares {@link Internal.Meta}, appends the matching target annotation
  * (same visibility list; element values shallow-copied)
- * ZombieBuddy annotations are left in place.
+ * KRL ZomBud annotations are left in place.
  */
 public class Converter extends AbstractTransformer {
     private static final Logger.Instance _logger = Logger.get("Converter");

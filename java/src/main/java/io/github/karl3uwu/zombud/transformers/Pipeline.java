@@ -55,7 +55,7 @@ public final class Pipeline {
 
     private static final TransSpec[] TRANS_SPECS = {
         new TransSpec("resolve",  Resolver.class,        "Resolve alternative names in annotations", TransOpt.DEFAULT),
-        new TransSpec("convert",  Converter.class,       "Convert ZombieBuddy annotations to ByteBuddy annotations", TransOpt.DEFAULT),
+        new TransSpec("convert",  Converter.class,       "Convert KRL ZomBud annotations to ByteBuddy annotations", TransOpt.DEFAULT),
         new TransSpec("bind",     Unshadow.class,          "Remap @Shadow types to patch targets", TransOpt.DEFAULT),
         new TransSpec("shadow",   ShadowRewrite.class,   "Rewrite shadow target access via VarHandle/MethodHandle", TransOpt.DEFAULT),
         new TransSpec("pub-all",  Publicizer.class,      "Publicize all members unconditionally"),

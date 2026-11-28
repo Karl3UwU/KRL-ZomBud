@@ -42,7 +42,7 @@ final class ModJarInjector {
         return new ByteArrayClassLoader.ChildFirst(parent, definitions, ByteArrayClassLoader.PersistenceHandler.MANIFEST);
     }
 
-    /** Define patch jars in the ZombieBuddy loader to keep patch/helper static state single. */
+    /** Define patch jars in the KRL ZomBud loader to keep patch/helper static state single. */
     static ClassLoader injectMerged(TransformedJar jar) {
         ClassLoader parent = parentLoader();
         if (!ClassInjector.UsingUnsafe.isAvailable()) {

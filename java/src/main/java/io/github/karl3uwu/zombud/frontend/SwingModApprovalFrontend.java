@@ -30,7 +30,7 @@ public final class SwingModApprovalFrontend implements ModApprovalFrontend {
     private List<JarBatchApprovalProtocol.Entry> runSwingSubprocessBatch(List<JarBatchApprovalProtocol.Entry> pending) {
         String jarPath = Utils.getZombieBuddyJarPath();
         if (jarPath == null) {
-            Logger.warn("Batch approval skipped: ZombieBuddy not loaded from a JAR (or path unknown)");
+            Logger.warn("Batch approval skipped: KRL ZomBud not loaded from a JAR (or path unknown)");
             return null;
         }
         Path tmpIn = null;

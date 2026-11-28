@@ -1,50 +1,50 @@
 local hasShownNotification = false
 
-if ZombieBuddy and ZombieBuddy.LogOverlay then
-    ZombieBuddy.LogOverlay.addFilter("[CleanUI] Skipping invalid")
-    ZombieBuddy.LogOverlay.addFilter("\" overrides ")
-    ZombieBuddy.LogOverlay.addFilter("action was null")
-    ZombieBuddy.LogOverlay.addFilter("ATA2Tuning")
-    ZombieBuddy.LogOverlay.addFilter("can't find map objects file")
-    ZombieBuddy.LogOverlay.addFilter("can't find mod.info in mod dir")
-    ZombieBuddy.LogOverlay.addFilter("feedingTrough")
-    ZombieBuddy.LogOverlay.addFilter("fmod: FMOD")
-    ZombieBuddy.LogOverlay.addFilter("ignoring invalid ItemPicker")
-    ZombieBuddy.LogOverlay.addFilter("IngameState.")
-    ZombieBuddy.LogOverlay.addFilter("ISExpBar")
-    ZombieBuddy.LogOverlay.addFilter("MainScreenState.")
-    ZombieBuddy.LogOverlay.addFilter("no room or building")
-    ZombieBuddy.LogOverlay.addFilter("no such mesh")
-    ZombieBuddy.LogOverlay.addFilter("no such sound")
-    ZombieBuddy.LogOverlay.addFilter("no such texture")
-    ZombieBuddy.LogOverlay.addFilter("not found in ZONE_MAP")
-    ZombieBuddy.LogOverlay.addFilter("OreVein")
-    ZombieBuddy.LogOverlay.addFilter("recursive require")
-    ZombieBuddy.LogOverlay.addFilter("require(\"")
-    ZombieBuddy.LogOverlay.addFilter("setGameSpeed")
-    ZombieBuddy.LogOverlay.addFilter("skinningData is null")
-    ZombieBuddy.LogOverlay.addFilter("TraitZ ")
+if KRLZomBud and KRLZomBud.LogOverlay then
+    KRLZomBud.LogOverlay.addFilter("[CleanUI] Skipping invalid")
+    KRLZomBud.LogOverlay.addFilter("\" overrides ")
+    KRLZomBud.LogOverlay.addFilter("action was null")
+    KRLZomBud.LogOverlay.addFilter("ATA2Tuning")
+    KRLZomBud.LogOverlay.addFilter("can't find map objects file")
+    KRLZomBud.LogOverlay.addFilter("can't find mod.info in mod dir")
+    KRLZomBud.LogOverlay.addFilter("feedingTrough")
+    KRLZomBud.LogOverlay.addFilter("fmod: FMOD")
+    KRLZomBud.LogOverlay.addFilter("ignoring invalid ItemPicker")
+    KRLZomBud.LogOverlay.addFilter("IngameState.")
+    KRLZomBud.LogOverlay.addFilter("ISExpBar")
+    KRLZomBud.LogOverlay.addFilter("MainScreenState.")
+    KRLZomBud.LogOverlay.addFilter("no room or building")
+    KRLZomBud.LogOverlay.addFilter("no such mesh")
+    KRLZomBud.LogOverlay.addFilter("no such sound")
+    KRLZomBud.LogOverlay.addFilter("no such texture")
+    KRLZomBud.LogOverlay.addFilter("not found in ZONE_MAP")
+    KRLZomBud.LogOverlay.addFilter("OreVein")
+    KRLZomBud.LogOverlay.addFilter("recursive require")
+    KRLZomBud.LogOverlay.addFilter("require(\"")
+    KRLZomBud.LogOverlay.addFilter("setGameSpeed")
+    KRLZomBud.LogOverlay.addFilter("skinningData is null")
+    KRLZomBud.LogOverlay.addFilter("TraitZ ")
 end
 
-local function checkZombieBuddyInstallation()
+local function checkKRLZomBudInstallation()
     -- Only check once
     if hasShownNotification then
         return
     end
     
-    if ZombieBuddy and ZombieBuddy.getVersion then
-        print("[ZombieBuddy] ZombieBuddy.getVersion() = " .. ZombieBuddy.getVersion())
-        -- ZombieBuddy is properly installed
+    if KRLZomBud and KRLZomBud.getVersion then
+        print("[KRLZomBud] KRLZomBud.getVersion() = " .. KRLZomBud.getVersion())
+        -- KRLZomBud is properly installed
         return
     end
-    if not ZombieBuddy then
-        print("[ZombieBuddy] ZombieBuddy global is nil.")
+    if not KRLZomBud then
+        print("[KRLZomBud] KRLZomBud global is nil.")
     else
-        print("[ZombieBuddy] ZombieBuddy.getVersion is nil.")
+        print("[KRLZomBud] KRLZomBud.getVersion is nil.")
     end
-    print("[ZombieBuddy] showing installation notification.")
+    print("[KRLZomBud] showing installation notification.")
     
-    -- ZombieBuddy is not installed - show notification
+    -- KRLZomBud is not installed - show notification
     hasShownNotification = true
     
     local function showInstallationDialog()
@@ -82,7 +82,7 @@ local function checkZombieBuddyInstallation()
         end
         
         local srcDir = modDir .. string.gsub("/libs/", "/", getFileSeparator())
-        print("[ZombieBuddy] please copy files from " .. srcDir .. " to " .. dstDir)
+        print("[KRLZomBud] please copy files from " .. srcDir .. " to " .. dstDir)
         
         -- Determine the command line based on OS
         local cmdLine = ""
@@ -102,9 +102,9 @@ local function checkZombieBuddyInstallation()
         local message = ""
         if isSystemWindows() then
             local releasesURL = "https://github.com/Karl3UwU/KRL-ZomBud/releases"
-            message = getText("UI_ZB_Install_Windows", releasesURL, srcDir, dstDir, cmdLine)
+            message = getText("UI_KRL_Install_Windows", releasesURL, srcDir, dstDir, cmdLine)
         else
-            message = getText("UI_ZB_Install_Unix", srcDir, dstDir, cmdLine, fileList)
+            message = getText("UI_KRL_Install_Unix", srcDir, dstDir, cmdLine, fileList)
         end
         
         -- Replace screenshot placeholder with actual image path
@@ -132,5 +132,5 @@ local function checkZombieBuddyInstallation()
 end
 
 -- Run the check when on main menu
-Events.OnMainMenuEnter.Add(checkZombieBuddyInstallation)
+Events.OnMainMenuEnter.Add(checkKRLZomBudInstallation)
 

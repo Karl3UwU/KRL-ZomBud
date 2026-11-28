@@ -330,7 +330,7 @@ public final class Utils {
     }
 
     /**
-     * Returns the JAR file that contains the currently running ZombieBuddy code.
+     * Returns the JAR file that contains the currently running KRL ZomBud code.
      *
      * @return the JAR path, or null if not found or not running from a JAR
      */
@@ -354,7 +354,7 @@ public final class Utils {
     }
 
     /**
-     * Path to the ZombieBuddy JAR on disk (for spawning subprocess).
+     * Path to the KRL ZomBud JAR on disk (for spawning subprocess).
      * @return absolute path or null if not running from a JAR
      */
     public static String getZombieBuddyJarPath() {
@@ -365,7 +365,7 @@ public final class Utils {
             if (!java.nio.file.Files.isRegularFile(p)) return null;
             return p.toAbsolutePath().toString();
         } catch (Exception e) {
-            Logger.warn("Could not resolve ZombieBuddy JAR path: " + e);
+            Logger.warn("Could not resolve KRL ZomBud JAR path: " + e);
             return null;
         }
     }

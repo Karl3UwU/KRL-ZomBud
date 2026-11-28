@@ -12,7 +12,7 @@ import se.krka.kahlua.vm.LuaClosure;
 import se.krka.kahlua.vm.KahluaTable;
 import zombie.Lua.LuaManager;
 
-@Exposer.LuaClass(name = "ZombieBuddy")
+@Exposer.LuaClass(name = "KRLZomBud")
 public class ZomBud {
     private static String version = "unknown";
     

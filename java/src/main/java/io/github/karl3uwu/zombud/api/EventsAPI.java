@@ -9,7 +9,7 @@ import zombie.Lua.Event;
 import zombie.Lua.LuaEventManager;
 import zombie.Lua.LuaManager;
 
-@Exposer.LuaClass(name = "ZombieBuddy.Events")
+@Exposer.LuaClass(name = "KRLZomBud.Events")
 public class EventsAPI {
     /** __index handler: when Lua does events.EventName and key is missing, call getByName(key). */
     private static final JavaFunction INDEX_GET_BY_NAME = (callFrame, nArgs) -> {

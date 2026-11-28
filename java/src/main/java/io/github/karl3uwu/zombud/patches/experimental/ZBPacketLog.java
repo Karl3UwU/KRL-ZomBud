@@ -14,7 +14,7 @@ import io.github.karl3uwu.zombud.api.Exposer;
  * Control plane for getPacket() logging. By default logging is disabled.
  * Lua can enable/disable and filter by packet class name (simple name, no package).
  */
-@Exposer.LuaClass(name = "ZombieBuddy.PacketLog")
+@Exposer.LuaClass(name = "KRLZomBud.PacketLog")
 public class ZBPacketLog {
     private static volatile boolean enabled = false;
     private static final Set<String> include = Collections.newSetFromMap(new ConcurrentHashMap<>());

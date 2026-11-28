@@ -9,9 +9,9 @@ import io.github.karl3uwu.zombud.api.Patch;
  * Strategy: set a flag while inside exit(), then skip all DebugLog.log() calls
  * during that window when suppression is enabled.
  *
- * Exposed to Lua as ZombieBuddy.Patches.GameLoadingState.
+ * Exposed to Lua as KRLZomBud.Patches.GameLoadingState.
  */
-@Exposer.LuaClass(name = "ZombieBuddy.Patches.GameLoadingState")
+@Exposer.LuaClass(name = "KRLZomBud.Patches.GameLoadingState")
 public class Patch_GameLoadingState {
 
     public static boolean _suppress = false;

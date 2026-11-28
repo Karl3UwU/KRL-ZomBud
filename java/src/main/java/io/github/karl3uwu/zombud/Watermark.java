@@ -25,7 +25,7 @@ import zombie.ui.TextManager;
 import zombie.ui.UIFont;
 import zombie.ui.UIManager;
 
-@Exposer.LuaClass(name = "ZombieBuddy.Watermark")
+@Exposer.LuaClass(name = "KRLZomBud.Watermark")
 public final class Watermark {
     private static final String ICON_RESOURCE = "zb_icon.png";
 

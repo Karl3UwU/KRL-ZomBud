@@ -32,11 +32,11 @@ public class Exposer {
      *   @Exposer.LuaClass
      *   public class MyApi { ... }  // Accessible as MyApi
      *
-     *   @Exposer.LuaClass(name = "ZombieBuddy.Utils")
-     *   public class Utils { ... }  // Accessible as ZombieBuddy.Utils
+     *   @Exposer.LuaClass(name = "KRLZomBud.Utils")
+     *   public class Utils { ... }  // Accessible as KRLZomBud.Utils
      *
-     *   @Exposer.LuaClass(name = "ZB.API.Logger")
-     *   public class MyLogger { ... }  // Accessible as ZB.API.Logger (nested tables)
+     *   @Exposer.LuaClass(name = "MyMod.API.Logger")
+     *   public class MyLogger { ... }  // Accessible as MyMod.API.Logger (nested tables)
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)

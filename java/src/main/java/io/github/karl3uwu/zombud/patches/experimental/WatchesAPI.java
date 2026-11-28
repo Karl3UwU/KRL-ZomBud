@@ -27,7 +27,7 @@ import zombie.Lua.LuaManager;
  * Experimental API for watching arbitrary Java method calls.
  * Add/Remove/Clear watches; when a watched method is called, logs class, method, and arguments.
  */
-@Exposer.LuaClass(name = "ZombieBuddy.Watches")
+@Exposer.LuaClass(name = "KRLZomBud.Watches")
 public class WatchesAPI {
 
     /** Hook type: log before method runs. */
@@ -375,7 +375,7 @@ public class WatchesAPI {
     }
 
     private static KahluaTable getWatchesTable() {
-        Object zb = LuaManager.env != null ? LuaManager.env.rawget("ZombieBuddy") : null;
+        Object zb = LuaManager.env != null ? LuaManager.env.rawget("KRLZomBud") : null;
         Object w = (zb instanceof KahluaTable t) ? t.rawget("Watches") : null;
         return w instanceof KahluaTable wt ? wt : null;
     }

@@ -44,7 +44,7 @@ final class ImguiApprovalDialog {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String PRELOAD_NOTICE = "[Preload]";
     private static final String PRELOAD_TOOLTIP = String.join("\n",
-            "This mod wants ZombieBuddy to load its Java code during agent startup on the next launch.",
+            "This mod wants KRL ZomBud to load its Java code during agent startup on the next launch.",
             "Preloaded mods run before normal Project Zomboid mod loading.",
             "This lets the mod hook earlier game code that is otherwise already loaded.");
     private static final int ROW_OK                     = ImColor.rgba(60, 110, 60, 80);

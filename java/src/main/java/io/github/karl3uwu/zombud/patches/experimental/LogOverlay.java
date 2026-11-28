@@ -21,7 +21,7 @@ import zombie.ui.UIFont;
  * Each line fades independently based on its timestamp.
  * Toggle with Ctrl+` (backtick/grave accent).
  */
-@Exposer.LuaClass(name = "ZombieBuddy.LogOverlay")
+@Exposer.LuaClass(name = "KRLZomBud.LogOverlay")
 public class LogOverlay {
     private static final int MARGIN_LEFT       = 10;
     private static final int MARGIN_BOTTOM     = 10;
