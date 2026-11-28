@@ -194,6 +194,17 @@ java {
   }
 }
 
+// Resolves the build's JDK, downloading it if needed. CI runs this because it can't compile without the game jar.
+tasks.register('printToolchain') {
+    group = 'help'
+    description = 'Prints the JDK this build compiles with, provisioning it if it is missing.'
+    def launcher = javaToolchains.launcherFor(java.toolchain)
+    doLast {
+        def jdk = launcher.get().metadata
+        println "Toolchain JDK ${jdk.javaRuntimeVersion} (${jdk.vendor}) at ${jdk.installationPath}"
+    }
+}
+
 sourceSets {
     main {
         java {

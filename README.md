@@ -115,7 +115,7 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## Links
 
-- **This fork**: https://github.com/Karl3UwU/ZombieBuddy
+- **This fork**: https://github.com/Karl3UwU/KRL-ZomBud
 - **Upstream**: https://github.com/zed-0xff/ZombieBuddy
 - **Upstream Steam Workshop item**: https://steamcommunity.com/sharedfiles/filedetails/?id=3619862853
 - **Related**: [ZBSpec](https://github.com/zed-0xff/ZBSpec) - Testing framework for PZ mods
