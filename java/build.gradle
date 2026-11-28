@@ -78,7 +78,7 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(
-            'Premain-Class': 'me.zed_0xff.zombie_buddy.Agent',
+            'Premain-Class': 'io.github.karl3uwu.zombud.Agent',
             'Can-Redefine-Classes': 'true',
             'Can-Retransform-Classes': 'true',
             'Implementation-Version': version
@@ -97,7 +97,7 @@ shadowJar {
     archiveClassifier.set("")
     manifest {
         attributes(
-            'Premain-Class': 'me.zed_0xff.zombie_buddy.Agent',
+            'Premain-Class': 'io.github.karl3uwu.zombud.Agent',
             'Can-Redefine-Classes': 'true',
             'Can-Retransform-Classes': 'true',
             'Implementation-Version': version
@@ -111,8 +111,8 @@ shadowJar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
-    relocate 'com.google.gson', 'zb.com.google.gson'
-    relocate 'org.bouncycastle', 'zb.org.bouncycastle'
+    relocate 'com.google.gson', 'io.github.karl3uwu.zombud.shaded.gson'
+    relocate 'org.bouncycastle', 'io.github.karl3uwu.zombud.shaded.bouncycastle'
 
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'
@@ -231,12 +231,12 @@ sourceSets {
         java {
             srcDirs = ['src/main/java']
             include '**/*.java'
-            exclude 'me/zed_0xff/zombie_buddy/patches/**'
+            exclude 'io/github/karl3uwu/zombud/patches/**'
         }
     }
     patches {
         java {
-            srcDirs = ['src/main/java/me/zed_0xff/zombie_buddy/patches']
+            srcDirs = ['src/main/java/io/github/karl3uwu/zombud/patches']
             include '**/*.java'
             exclude 'experimental/**'
         }
@@ -245,7 +245,7 @@ sourceSets {
     }
     experimental {
         java {
-            srcDirs = ['src/main/java/me/zed_0xff/zombie_buddy/patches/experimental']
+            srcDirs = ['src/main/java/io/github/karl3uwu/zombud/patches/experimental']
             include '**/*.java'
         }
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath + patches.output
@@ -448,7 +448,7 @@ task patchesJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
     configurations = []
     from sourceSets.patches.output
     dependsOn compilePatchesJava
-    relocate 'com.google.gson', 'zb.com.google.gson'
+    relocate 'com.google.gson', 'io.github.karl3uwu.zombud.shaded.gson'
 }
 
 task experimentalJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -456,7 +456,7 @@ task experimentalJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.Shad
     configurations = []
     from sourceSets.experimental.output
     dependsOn compileExperimentalJava
-    relocate 'com.google.gson', 'zb.com.google.gson'
+    relocate 'com.google.gson', 'io.github.karl3uwu.zombud.shaded.gson'
 }
 
 shadowJar {
@@ -557,7 +557,7 @@ task test_patched(type: Test) {
     // Add javaagent JVM argument with patches_jar parameter
     // Format: <path>:<package_name>
     def patchesJarPath = testpatchesJar.archiveFile.get().asFile.absolutePath
-    def patchesPackageName = "me.zed_0xff.zombie_buddy.testpatches"
+    def patchesPackageName = "io.github.karl3uwu.zombud.testpatches"
 
     // Gson must be on the bootstrap classpath so it is visible when premain() runs.
     // Deferred to doFirst so the configuration is fully resolved before we iterate.

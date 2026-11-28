@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import com.sun.jna.platform.win32.Kernel32Util;
 import com.sun.jna.platform.win32.Tlhelp32;
-import me.zed_0xff.zombie_buddy.Agent;
+import io.github.karl3uwu.zombud.Agent;
 
 
 

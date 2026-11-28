@@ -7,4 +7,4 @@ icon=icon_beta_128.png
 description=Java modding environment for Project Zomboid. A fork of ZombieBuddy by Zed (MIT). Mods must list KRLZomBud as their requirement.
 
 javaJarFile=../libs/KRLZomBud.jar
-javaPkgName=me.zed_0xff.zombie_buddy
+javaPkgName=io.github.karl3uwu.zombud

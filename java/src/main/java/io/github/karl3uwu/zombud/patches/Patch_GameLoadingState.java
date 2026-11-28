@@ -1,0 +1,54 @@
+package io.github.karl3uwu.zombud.patches;
+
+import io.github.karl3uwu.zombud.api.Exposer;
+import io.github.karl3uwu.zombud.api.Patch;
+
+/**
+ * Suppresses sandbox options logging that occurs in GameLoadingState.exit().
+ *
+ * Strategy: set a flag while inside exit(), then skip all DebugLog.log() calls
+ * during that window when suppression is enabled.
+ *
+ * Exposed to Lua as KRLZomBud.Patches.GameLoadingState.
+ */
+@Exposer.LuaClass(name = "KRLZomBud.Patches.GameLoadingState")
+public class Patch_GameLoadingState {
+
+    public static boolean _suppress = false;
+    public static boolean _in_exit = false;
+
+    public static void setSuppressSandboxLog(boolean value) {
+        _suppress = value;
+    }
+
+    // -------------------------------------------------------------------------
+    // Track entry/exit of GameLoadingState.exit()
+    // -------------------------------------------------------------------------
+
+    @Patch(className = "zombie.gameStates.GameLoadingState", methodName = "exit")
+    public static class Patch_exit {
+        @Patch.OnEnter
+        public static void enter() {
+            _in_exit = true;
+        }
+
+        @Patch.OnExit
+        public static void exit() {
+            _in_exit = false;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Skip DebugLog.log() calls while inside exit() and suppression is enabled.
+    // Matches both log(String) and log(DebugType, String) overloads — only the
+    // former is called from exit(), so the extra coverage is harmless.
+    // -------------------------------------------------------------------------
+
+    @Patch(className = "zombie.debug.DebugLog", methodName = "log")
+    public static class Patch_log {
+        @Patch.OnEnter(skipOn = true)
+        public static boolean enter() {
+            return _suppress && _in_exit;
+        }
+    }
+}

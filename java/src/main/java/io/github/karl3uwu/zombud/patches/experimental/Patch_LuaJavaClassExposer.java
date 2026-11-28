@@ -1,0 +1,19 @@
+// package io.github.karl3uwu.zombud.patches.experimental;
+// 
+// import io.github.karl3uwu.zombud.Logger;
+// import io.github.karl3uwu.zombud.api.Patch;
+// 
+// import zombie.Lua.LuaManager;
+// import se.krka.kahlua.vm.KahluaTable;
+// 
+// // just to check that last argument is always LuaManager.env
+// @Patch(className = "se.krka.kahlua.integration.expose.LuaJavaClassExposer", methodName = "exposeMethod")
+// public class Patch_LuaJavaClassExposer {
+//     @Patch.OnExit
+//     public static void enter(
+//         @Patch.Argument(2) String methodName,
+//         @Patch.Argument(3) KahluaTable staticBase
+//     ) {
+//         Logger.debug("exposeMethod", methodName, staticBase, LuaManager.env);
+//     }
+// }

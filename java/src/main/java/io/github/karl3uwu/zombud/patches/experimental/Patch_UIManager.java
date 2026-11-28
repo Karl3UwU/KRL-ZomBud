@@ -1,0 +1,17 @@
+package io.github.karl3uwu.zombud.patches.experimental;
+
+import io.github.karl3uwu.zombud.api.Patch;
+
+/**
+ * Patch UIManager.update() to poll non-GL tasks on every frame.
+ * This runs on the main game thread (GameWindow.gameThread) which is the Lua thread owner.
+ * Works in all client states: main menu, loading, in-game, paused.
+ */
+@Patch(className = "zombie.ui.UIManager", methodName = "update")
+public class Patch_UIManager {
+
+    @Patch.OnEnter
+    public static void enter() {
+        HttpServer.maybeRunLuaTasks();
+    }
+}

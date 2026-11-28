@@ -1,5 +1,5 @@
 UI_EN = {
-    UI_ZB_Install_Windows = "<H1> KRL ZomBud is not installed! <LINE> " ..
+    UI_KRL_Install_Windows = "<H1> KRL ZomBud is not installed! <LINE> " ..
                             "<LINE> " ..
                             "<H2> Automated Installation (Recommended): <LINE> " ..
                             "<TEXT>" ..
@@ -11,9 +11,9 @@ UI_EN = {
                             "<TEXT> Copy files from <H2>%2<TEXT> to <H2>%3<TEXT> and add <H2>%4<TEXT> to Steam launch options. <LINE> " ..
                             "<LINE> " ..
                             "<IMAGECENTRE:SCREENSHOT_PLACEHOLDER>",
-    UI_ZB_SuppressSandboxLog = "Suppress sandbox options logging",
-    UI_ZB_WatermarkOpacity = "Watermark Opacity",
-    UI_ZB_Install_Unix = "<H1> KRL ZomBud requires manual installation. <LINE> " ..
+    UI_KRL_SuppressSandboxLog = "Suppress sandbox options logging",
+    UI_KRL_WatermarkOpacity = "Watermark Opacity",
+    UI_KRL_Install_Unix = "<H1> KRL ZomBud requires manual installation. <LINE> " ..
                          "<LINE> " ..
                          "<H2> Please copy the following files: <LINE> " ..
                          "<INDENT:40><TEXT>" ..

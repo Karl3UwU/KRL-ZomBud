@@ -28,8 +28,8 @@ Add the following entries to your `mod.info` file:
 require=\KRLZomBud
 javaJarFile=media/java/YourMod.jar
 javaPkgName=com.yourname.yourmod
-ZBVersionMin=1.0.0
-ZBVersionMax=1.5.0
+KRLVersionMin=3.0.0
+KRLVersionMax=3.9.9
 ```
 
 | Field | Description |
@@ -37,43 +37,41 @@ ZBVersionMax=1.5.0
 | `require=\KRLZomBud` | Declares dependency on KRL ZomBud. (`require=\ZombieBuddy` is upstream's id and is not accepted; see [RENAME.md](RENAME.md).) |
 | `javaJarFile` | Path to your JAR file relative to the mod version directory. **Required** for Java code. |
 | `javaPkgName` | The package name for your Main class and patches. **Mandatory** if `javaJarFile` is specified. |
-| `ZBVersionMin` | (Optional) Minimum ZombieBuddy version required (inclusive) |
-| `ZBVersionMax` | (Optional) Maximum ZombieBuddy version required (inclusive) |
+| `KRLVersionMin` | (Optional) Minimum KRL ZomBud version required (inclusive; `3.0.0-beta3` counts as below `3.0.0`) |
+| `KRLVersionMax` | (Optional) Maximum KRL ZomBud version required (inclusive) |
 | `javaPreload` | (Optional) Set to `true` to request early loading. The JAR must also be signed and declare preload support in its manifest. |
 
 ### Client/server JAR paths
 
-ZombieBuddy skips loading a Java mod when the environment and JAR path don't match:
+KRL ZomBud skips loading a Java mod when the environment and JAR path don't match:
 - **On a dedicated server**: mods whose `javaJarFile` path contains `media/java/client/` are skipped (client-only).
 - **On the game client**: mods whose `javaJarFile` path contains `media/java/server/` are skipped (server-only).
 
 Use a path that does not contain `client/` or `server/` (e.g. `media/java/YourMod.jar`) for code that runs on both.
 
-### Multiple JARs per mod (supporting several ZombieBuddy API versions)
+### Multiple JARs per mod (supporting several KRL ZomBud API versions)
 
-*Since ZombieBuddy 3.0.* ZombieBuddy 2.x only ever reads the suffix-less `javaJarFile`/`ZBVersionMin`/`ZBVersionMax`
-entry; it does not recognize the numbered keys below.
-
-If your mod needs different JARs for different ZombieBuddy versions (e.g. you compiled a new build
-against a ZombieBuddy API change but still want old installs to keep working), add a numeric suffix
-to `javaJarFile`, `ZBVersionMin`, and `ZBVersionMax` to declare additional candidates:
+If your mod needs different JARs for different KRL ZomBud versions (e.g. you compiled a new build
+against an API change but still want older installs to keep working), add a numeric suffix
+to `javaJarFile`, `KRLVersionMin`, and `KRLVersionMax` to declare additional candidates:
 
 ```ini
 javaJarFile=media/java/YourMod.jar
-ZBVersionMin=1.0.0
-ZBVersionMax=2.9.9
+KRLVersionMin=3.0.0
+KRLVersionMax=3.0.9
 
 javaJarFile2=media/java/YourMod-new.jar
-ZBVersionMin2=3.0.0
+KRLVersionMin2=3.1.0
 ```
 
 - The suffix-less entry is equivalent to suffix `0`.
 - Suffixes don't need to be sequential or contiguous — any number works (`javaJarFile7`, etc.).
 - At load time, candidates are evaluated in ascending suffix order; the first one whose
-  `ZBVersionMin`/`ZBVersionMax` range covers the running ZombieBuddy version (and whose path matches
+  `KRLVersionMin`/`KRLVersionMax` range covers the running KRL ZomBud version (and whose path matches
   the current client/server platform) is used.
-- ZombieBuddy 2.x doesn't recognize the numbered keys and only ever sees the suffix-less entry, so
-  a single-JAR `mod.info` keeps working unmodified on older installs.
+- Both bounds are inclusive. A prerelease sorts before its release: `3.0.0-beta3` is below `3.0.0`, so
+  `KRLVersionMin=3.0.0` does not match a `3.0.0-beta3` build, and `KRLVersionMax=3.0.0` does.
+- Keys are case-insensitive. ZombieBuddy's `ZBVersionMin`/`ZBVersionMax` keys are not read.
 
 ### Important notes
 
@@ -123,12 +121,12 @@ public class Main {
 
 ## Preload Mods
 
-Signed mods can request early loading with `javaPreload=true` in `mod.info` and the matching preload manifest entry in the JAR. When the user approves preload, ZombieBuddy loads the JAR during Java agent startup on the next game launch.
+Signed mods can request early loading with `javaPreload=true` in `mod.info` and the matching preload manifest entry in the JAR. When the user approves preload, KRL ZomBud loads the JAR during Java agent startup on the next game launch.
 
 Add the manifest attribute to the JAR you distribute:
 
 ```text
-ZB-Preload: true
+KRL-Preload: true
 ```
 
 With Gradle's standard `jar` task:
@@ -137,7 +135,7 @@ With Gradle's standard `jar` task:
 jar {
     manifest {
         attributes(
-            'ZB-Preload': 'true'
+            'KRL-Preload': 'true'
         )
     }
 }
@@ -149,17 +147,17 @@ If you distribute a shaded JAR, add the same attribute to `shadowJar` instead, o
 shadowJar {
     manifest {
         attributes(
-            'ZB-Preload': 'true'
+            'KRL-Preload': 'true'
         )
     }
 }
 ```
 
-ZombieBuddy requires both `javaPreload=true` in `mod.info` and `ZB-Preload: true` in the JAR manifest. This prevents a loose `mod.info` edit from silently turning an ordinary signed JAR into an early-loaded one.
+KRL ZomBud requires both `javaPreload=true` in `mod.info` and `KRL-Preload: true` in the JAR manifest. This prevents a loose `mod.info` edit from silently turning an ordinary signed JAR into an early-loaded one.
 
 For preloaded mods, lifecycle entry points are split by phase:
 
-- `PreMain.premain(String[] args)` is executed at ZombieBuddy `premain` time, before regular Project Zomboid mod loading.
+- `PreMain.premain(String[] args)` is executed at KRL ZomBud `premain` time, before regular Project Zomboid mod loading.
 - `Main.main(String[] args)` is still executed later at the regular Java mod load time.
 
 Use `PreMain` only for work that truly needs early hooks. Put normal initialization in `Main` so it runs with the rest of the mod-loading flow.
@@ -173,7 +171,7 @@ Use `PreMain` only for work that truly needs early hooks. Put normal initializat
 ```java
 package com.yourname.yourmod.patches;
 
-import me.zed_0xff.zombie_buddy.annotations.Patch;
+import io.github.karl3uwu.zombud.api.Patch;
 
 @Patch(className = "zombie.SomeGameClass", methodName = "someMethod", warmUp = true)
 public class MyPatch {
@@ -310,7 +308,7 @@ Keys are parameter names; values are the actual field names on the target class.
 **Full class exposure**: Annotate a class with `@Exposer.LuaClass`. The loader discovers it in your package and registers it with the game's Lua engine.
 
 ```java
-import me.zed_0xff.zombie_buddy.Exposer;
+import io.github.karl3uwu.zombud.api.Exposer;
 
 @Exposer.LuaClass
 public class MyLuaApi {
@@ -340,7 +338,7 @@ In Lua you can then call `myGlobalFunc("foo")`.
 For runtime class exposure:
 
 ```java
-import me.zed_0xff.zombie_buddy.Exposer;
+import io.github.karl3uwu.zombud.api.Exposer;
 
 // In your initialization code
 Exposer.exposeClass(MyCustomClass.class);

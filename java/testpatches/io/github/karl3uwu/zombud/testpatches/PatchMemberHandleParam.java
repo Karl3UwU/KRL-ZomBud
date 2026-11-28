@@ -1,0 +1,18 @@
+package io.github.karl3uwu.zombud.testpatches;
+
+import java.lang.invoke.MethodHandle;
+
+import io.github.karl3uwu.zombud.api.Patch;
+import testjar.MemberHandleHelper;
+
+// verifies: parameter-level @MethodHandle resolves a method handle and injects it as a local in the advice body
+@Patch(className = "testjar.MemberHandleTarget", methodName = "doParamHandle")
+public class PatchMemberHandleParam {
+    @Patch.OnEnter
+    public static void enter(@Patch.Field(readOnly = true) String name,
+                             @Patch.MethodHandle(className = "testjar.MemberHandleHelper",
+                                                returnType = String.class,
+                                                paramTypes = {String.class, String.class}) MethodHandle greet) throws Throwable {
+        MemberHandleHelper.capturedParamHandle = (String) greet.invoke(name, "param ");
+    }
+}
