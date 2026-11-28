@@ -1,6 +1,6 @@
 # ZombieBuddy (fork)
 
-> **This is a community fork of [zed-0xff/ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy)**, created to grow it into a
+> **KRL ZomBud is a fork of [ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy) by Zed (zed-0xff), MIT**, created to grow it into a
 > Fabric-style modding environment for Project Zomboid: a small stable loader, a richer patching API,
 > build tooling for modders, and open, automated releases. See **[doc/ROADMAP.md](doc/ROADMAP.md)** for the plan.
 >
@@ -41,8 +41,8 @@ Previously, Java mods for Project Zomboid required bundling `.class` files and m
 
 ### For End Users
 
-1. **Windows**: Download and run [ZombieBuddyInstaller.exe](https://github.com/zed-0xff/ZombieBuddy/releases/tag/windows_installer), then choose the launch modes to patch. The installer also has an uninstall option and shows a confirmation preview before applying changes.
-2. **macOS/Linux**: Copy `ZombieBuddy.jar` to the game directory and add `-javaagent:ZombieBuddy.jar --` to launch options
+1. **Windows**: Download and run [KRLZomBudInstaller.exe](https://github.com/Karl3UwU/KRL-ZomBud/releases), then choose the launch modes to patch. The installer also has an uninstall option and shows a confirmation preview before applying changes.
+2. **macOS/Linux**: Copy `KRLZomBud.jar` to the game directory and add `-javaagent:KRLZomBud.jar --` to launch options
 
 📖 **[Full Installation Guide](doc/Installation.md)** - Security warnings, manual installation, policy modes
 
@@ -50,7 +50,7 @@ Previously, Java mods for Project Zomboid required bundling `.class` files and m
 
 ### For Modders
 
-1. Add `require=\ZombieBuddy`, `javaJarFile`, and `javaPkgName` to your `mod.info`
+1. Add `require=\KRLZomBud`, `javaJarFile`, and `javaPkgName` to your `mod.info`
 2. Create patches using `@Patch` annotations
 3. Build your JAR and place it in `media/java/`
 

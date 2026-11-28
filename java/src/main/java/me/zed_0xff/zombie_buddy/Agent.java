@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.github.karl3uwu.zombud.AgentConflicts;
+import io.github.karl3uwu.zombud.ModIdentity;
 import me.zed_0xff.zombie_buddy.frontend.ModApprovalFrontends;
 import zombie.core.Core;
 
@@ -18,11 +20,12 @@ public class Agent {
 
     public static void premain(String agentArgs, Instrumentation inst) {
         if (!initialized.compareAndSet(false, true)) {
-            Logger.warn("ZombieBuddy agent already installed; ignoring duplicate -javaagent entry.");
+            Logger.warn(ModIdentity.DISPLAY_NAME + " agent already installed; ignoring duplicate -javaagent entry.");
             return;
         }
 
         Logger.info("activating " + ZombieBuddy.getFullVersionString());
+        warnAboutOtherAgentJars();
         Loader.g_instrumentation = inst;
         Reflect.init(inst);
 
@@ -141,6 +144,18 @@ public class Agent {
 
         Loader.preloadMods();
         Reflect.clearCaches();
+    }
+
+    /** Logs a warning when upstream ZombieBuddy.jar (or another copy) is also on the class path. */
+    private static void warnAboutOtherAgentJars() {
+        try {
+            var locations = AgentConflicts.agentClassLocations(_systemLoader);
+            for (String line : AgentConflicts.describeConflict(locations, Agent.class.getResource("Agent.class"))) {
+                Logger.warn(line);
+            }
+        } catch (Throwable t) {
+            Logger.debug("agent conflict check failed: " + t);
+        }
     }
 
     static List<String> parseClassNames(String value) {

@@ -68,9 +68,10 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 
-// Fixed name: zbNative.dll and 42/mod.info load "ZombieBuddy.jar". (Deriving it from the checkout folder
-// name produced a differently named jar whenever the repo was cloned into another folder.)
-def MOD_ID = 'ZombieBuddy'
+// Fixed name: zbNative.dll, 42/mod.info and the installer all expect "KRLZomBud.jar" (see doc/RENAME.md).
+// Keep it in sync with ModIdentity.MOD_ID. (Deriving it from the checkout folder name produced a differently
+// named jar whenever the repo was cloned into another folder.)
+def MOD_ID = 'KRLZomBud'
 jar {
     archiveBaseName.set(MOD_ID)
     archiveClassifier.set("plain")
@@ -83,6 +84,12 @@ jar {
             'Implementation-Version': version
         )
     }
+}
+
+// The signed known-authors registry, bundled byte-for-byte (no filtering). KnownAuthors reads only this copy
+// and verifies its signature; nothing is downloaded at runtime. authors.json itself is never modified by the build.
+processResources {
+    from(file('../authors.json'))
 }
 
 shadowJar {
@@ -113,6 +120,20 @@ shadowJar {
     exclude 'META-INF/*.MF'
     exclude 'META-INF/versions/**'
     exclude '*.dll'
+
+    // Dependencies' own LICENSE/NOTICE files collide at the same paths (only the first would survive), so they are
+    // replaced by our NOTICE plus the full third-party license texts, which cover every bundled library.
+    exclude 'META-INF/LICENSE'
+    exclude 'META-INF/LICENSE.md'
+    exclude 'META-INF/NOTICE'
+    exclude 'META-INF/licenses/**'
+    from('..') {
+        include 'LICENSE.txt', 'NOTICE'
+        into 'META-INF'
+    }
+    from('../third_party/licenses') {
+        into 'META-INF/third-party-licenses'
+    }
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -527,7 +548,7 @@ task test_patched(type: Test) {
     useJUnitPlatform()
     dependsOn testJar
     dependsOn testpatchesJar
-    dependsOn shadowJar  // Fat shaded ZombieBuddy.jar (javaagent)
+    dependsOn shadowJar  // Fat shaded KRLZomBud.jar (javaagent)
 
     // Use testPatched source set
     testClassesDirs = sourceSets.testPatched.output.classesDirs

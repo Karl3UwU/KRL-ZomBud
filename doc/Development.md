@@ -27,7 +27,7 @@ folder that contains `Project Zomboid.app`; the build finds the jar inside the b
 
 ```powershell
 cd java
-.\gradlew shadowJar                          # ZombieBuddy.jar -> java\build\jdk25\libs\
+.\gradlew shadowJar                          # KRLZomBud.jar -> java\build\jdk25\libs\
 .\gradlew unitTest test_vanilla test_patched # all three test suites
 ```
 
@@ -58,7 +58,7 @@ the `mingw-w64` package and run `make` instead.
 ```powershell
 cd installer
 go test ./...
-$env:GOOS="windows"; $env:GOARCH="amd64"; go build -o ZombieBuddyInstaller.exe
+$env:GOOS="windows"; $env:GOARCH="amd64"; go build -o KRLZomBudInstaller.exe
 ```
 
 The `testdata/` launcher files keep their original line endings on purpose (see `.gitattributes`).
@@ -86,6 +86,6 @@ when IntelliJ shows a decompiled game class ("Choose Sources...").
 
 ## Run your build in the game
 
-Copy `java\build\jdk25\libs\ZombieBuddy.jar` and `c\windows\zbNative.dll` into the game folder (back up the originals
-first). Don't leave a `ZombieBuddy.jar.zbs` signature file next to a self-built jar: a signature that doesn't match its
+Copy `java\build\jdk25\libs\KRLZomBud.jar` and `c\windows\zbNative.dll` into the game folder (back up the originals
+first). Don't leave a `KRLZomBud.jar.zbs` signature file next to a self-built jar: a signature that doesn't match its
 jar blocks loading. Watch `%USERPROFILE%\Zomboid\console.txt` for `[ZB]` lines.

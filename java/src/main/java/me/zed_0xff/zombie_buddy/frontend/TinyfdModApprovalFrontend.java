@@ -18,7 +18,7 @@ import zombie.core.GameVersion;
  */
 public final class TinyfdModApprovalFrontend implements ModApprovalFrontend {
 
-    private static final String DIALOG_TITLE = "ZombieBuddy Java mod approval";
+    private static final String DIALOG_TITLE = "KRL ZomBud: Java mod approval";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @Override

@@ -9,7 +9,7 @@ ZombieBuddy accepts configuration parameters through the Java agent argument str
 **macOS / Linux:**
 
 ```
--javaagent:ZombieBuddy.jar=param1=value1,param2=value2 --
+-javaagent:KRLZomBud.jar=param1=value1,param2=value2 --
 ```
 
 **Windows:**
@@ -39,7 +39,7 @@ Controls the amount of logging output.
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=verbosity=2 --
+-javaagent:KRLZomBud.jar=verbosity=2 --
 ```
 
 Can also be set via the `ZB_VERBOSITY` environment variable (overrides the command-line value).
@@ -59,7 +59,7 @@ Controls how ZombieBuddy handles unknown or changed Java mod JARs.
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=policy=deny-new --
+-javaagent:KRLZomBud.jar=policy=deny-new --
 ```
 
 The policy is locked during agent startup, before any Java mod is loaded. A later-loading Java mod cannot change it.
@@ -78,7 +78,7 @@ Controls whether mods without ZBS signatures are allowed.
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=allow_unsigned_mods=false --
+-javaagent:KRLZomBud.jar=allow_unsigned_mods=false --
 ```
 
 > **Note:** Invalid signatures (present `.zbs` but verification fails) are always blocked when ZBS verification is enabled.
@@ -99,7 +99,7 @@ Selects the UI for Java mod approval dialogs.
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=frontend=console --
+-javaagent:KRLZomBud.jar=frontend=console --
 ```
 
 ---
@@ -116,7 +116,7 @@ Timeout in seconds for HTTP connections and requests. Applies to all outbound HT
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=http_client_timeout=30 --
+-javaagent:KRLZomBud.jar=http_client_timeout=30 --
 ```
 
 ---
@@ -133,7 +133,7 @@ Time-to-live in seconds for the in-memory HTTP response cache. Applies to all ou
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=http_cache_ttl=0 --
+-javaagent:KRLZomBud.jar=http_cache_ttl=0 --
 ```
 
 ---
@@ -145,7 +145,7 @@ Directory used for ZombieBuddy configuration and cache files. Defaults to `~/.zo
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=config_dir=/path/to/zombie_buddy_config --
+-javaagent:KRLZomBud.jar=config_dir=/path/to/zombie_buddy_config --
 ```
 
 ---
@@ -159,13 +159,13 @@ If `prop_prefix` is not specified, ZombieBuddy does not read system properties i
 **Example:**
 
 ```
--Dzb.verbosity=2 -Dzb.policy=deny-new -javaagent:ZombieBuddy.jar=prop_prefix=zb --
+-Dzb.verbosity=2 -Dzb.policy=deny-new -javaagent:KRLZomBud.jar=prop_prefix=zb --
 ```
 
 This is equivalent to:
 
 ```
--javaagent:ZombieBuddy.jar=verbosity=2,policy=deny-new --
+-javaagent:KRLZomBud.jar=verbosity=2,policy=deny-new --
 ```
 
 ---
@@ -177,7 +177,7 @@ Enables experimental patches. This is a flag parameter (no value needed).
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=experimental --
+-javaagent:KRLZomBud.jar=experimental --
 ```
 
 ---
@@ -191,13 +191,13 @@ Load additional patch JARs at startup. Useful for development or testing patches
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=patches_jar=/path/to/MyPatches.jar:com.example.patches --
+-javaagent:KRLZomBud.jar=patches_jar=/path/to/MyPatches.jar:com.example.patches --
 ```
 
 Multiple JARs:
 
 ```
--javaagent:ZombieBuddy.jar=patches_jar=/path/to/First.jar:com.first;/path/to/Second.jar:com.second --
+-javaagent:KRLZomBud.jar=patches_jar=/path/to/First.jar:com.first;/path/to/Second.jar:com.second --
 ```
 
 ---
@@ -209,7 +209,7 @@ Expose Java classes to Lua at startup. Semicolon-separated list of fully-qualifi
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=expose_classes=com.example.MyClass;com.example.OtherClass --
+-javaagent:KRLZomBud.jar=expose_classes=com.example.MyClass;com.example.OtherClass --
 ```
 
 ---
@@ -221,7 +221,7 @@ Exit the game immediately after initialization completes. Useful for testing or 
 **Example:**
 
 ```
--javaagent:ZombieBuddy.jar=exit_after_game_init --
+-javaagent:KRLZomBud.jar=exit_after_game_init --
 ```
 
 ---
@@ -231,7 +231,7 @@ Exit the game immediately after initialization completes. Useful for testing or 
 Multiple parameters can be combined with commas:
 
 ```
--javaagent:ZombieBuddy.jar=verbosity=1,policy=deny-new,allow_unsigned_mods=false --
+-javaagent:KRLZomBud.jar=verbosity=1,policy=deny-new,allow_unsigned_mods=false --
 ```
 
 Windows example:

@@ -18,15 +18,26 @@ import (
 )
 
 const (
+	PRODUCT_NAME      = "KRL ZomBud"
 	PZ_APP_ID         = "108600"
-	ZB_MOD_ID         = "3619862853"
-	ZB_BETA_MOD_ID    = "3812624292"
-	INSTALLER_VERSION = "4.4"
+	INSTALLER_VERSION = "5.0-krl"
 	ZB_LAUNCH_ARG     = "-agentlib:zbNative"
 	ZB_LAUNCH_OPTIONS = ZB_LAUNCH_ARG + " --"
+
+	// KRL ZomBud's mod id and agent jar (must match MOD_ID in java/build.gradle and ZB_JAR in zbNative.c).
+	KRL_MOD_ID   = "KRLZomBud"
+	KRL_JAR_NAME = KRL_MOD_ID + ".jar"
+
+	// Upstream ZombieBuddy's agent jar. Its installer used the same -agentlib:zbNative hook, which KRL ZomBud
+	// reuses; older manual setups used -javaagent:ZombieBuddy.jar, which install and uninstall remove.
+	LEGACY_JAR_NAME  = "ZombieBuddy.jar"
+	LEGACY_AGENT_ARG = "-javaagent:" + LEGACY_JAR_NAME
 )
 
-var steamZombieBuddyLaunchOptionPattern = regexp.MustCompile(`(^|\s)-agentlib:zbNative(?:=\S*)?[ ]*[-]*`)
+var (
+	steamAgentLibLaunchOptionPattern        = regexp.MustCompile(`(^|\s)-agentlib:zbNative(?:=\S*)?[ ]*[-]*`)
+	steamLegacyJavaAgentLaunchOptionPattern = regexp.MustCompile(`(^|\s)-javaagent:ZombieBuddy\.jar(?:=\S*)?(?:\s*--(?:\s|$))?`)
+)
 
 type patchTargets struct {
 	normalJSON         bool
@@ -49,7 +60,7 @@ type uninstallPlan struct {
 type installPaths struct {
 	steam string
 	pz    string
-	zb    string
+	zb    string // folder holding the files to install (zbNative.dll and KRLZomBud.jar)
 }
 
 type operationResult int
@@ -72,8 +83,8 @@ type launcherWindowsVersion struct {
 }
 
 func main() {
-	fmt.Println("ZombieBuddy Windows Installer v" + INSTALLER_VERSION)
-	fmt.Println("-------------------------------")
+	fmt.Println(PRODUCT_NAME + " Windows Installer v" + INSTALLER_VERSION)
+	fmt.Println("--------------------------------------")
 
 	if runtime.GOOS != "windows" {
 		fmt.Println("[!] Error: This installer is only designed for Windows.")
@@ -126,8 +137,8 @@ func promptAction() (string, error) {
 	return promptChoice(reader, promptChoiceConfig{
 		title: "What can I do you for?",
 		lines: []string{
-			"  1) Install ZombieBuddy",
-			"  2) Uninstall ZombieBuddy",
+			"  1) Install " + PRODUCT_NAME,
+			"  2) Uninstall " + PRODUCT_NAME,
 			"  3) Nothing, thanks!",
 			"",
 			"Any system changes will be shown for confirmation before they are applied.",
@@ -146,7 +157,7 @@ func promptAction() (string, error) {
 func promptInstallTargets() (patchTargets, error) {
 	reader := bufio.NewReader(os.Stdin)
 	value, err := promptChoice(reader, promptChoiceConfig{
-		title:   "What launch mode should ZombieBuddy patch?",
+		title:   "What launch mode should " + PRODUCT_NAME + " patch?",
 		lines:   []string{"  1) Both", "  2) Normal Launch", "  3) Alternate Launch"},
 		prompt:  "Choose 1, 2, or 3: ",
 		eofErr:  "no launch mode selected",
@@ -247,7 +258,7 @@ func confirmChanges(lines []string) (bool, error) {
 	}
 
 	fmt.Println()
-	fmt.Println("ZombieBuddy will make these changes:")
+	fmt.Println(PRODUCT_NAME + " will make these changes:")
 	for _, line := range lines {
 		fmt.Println("  - " + line)
 	}
@@ -309,6 +320,10 @@ func install() operationResult {
 		}
 	}
 	preview := installPreview(paths.pz, paths.steam, paths.zb, targets)
+	staleLegacyFiles := legacyCoreFilePaths(paths.pz)
+	for _, path := range staleLegacyFiles {
+		preview = append(preview, fmt.Sprintf("delete old upstream file \"%s\"", path))
+	}
 	if len(staleSteamLaunchOptions) > 0 {
 		preview = append(preview, fmt.Sprintf("remove duplicate \"%s\" from PZ Steam launch options", ZB_LAUNCH_ARG))
 	}
@@ -327,7 +342,11 @@ func install() operationResult {
 		fmt.Printf("[!] Error copying core files: %v\n", err)
 		return resultFailed
 	} else {
-		fmt.Println("[.] Successfully installed zbNative.dll and ZombieBuddy.jar")
+		fmt.Println("[.] Successfully installed zbNative.dll and " + KRL_JAR_NAME)
+	}
+	if err := removeCoreFiles(staleLegacyFiles); err != nil {
+		fmt.Printf("[!] Error removing old upstream files: %v\n", err)
+		return resultFailed
 	}
 
 	if targets.normalJSON {
@@ -336,7 +355,7 @@ func install() operationResult {
 			fmt.Printf("[!] Error updating ProjectZomboid64.json: %v\n", err)
 			return resultFailed
 		}
-		reportChange(updatedJSON, "Updated ProjectZomboid64.json for normal launcher mode", "ProjectZomboid64.json already contains ZombieBuddy agent.")
+		reportChange(updatedJSON, "Updated ProjectZomboid64.json for normal launcher mode", "ProjectZomboid64.json already contains the " + PRODUCT_NAME + " agent.")
 	}
 
 	if targets.alternateBatch {
@@ -345,7 +364,7 @@ func install() operationResult {
 			fmt.Printf("[!] Error updating ProjectZomboid64.bat: %v\n", err)
 			return resultFailed
 		}
-		reportChange(updatedBatch, "Updated ProjectZomboid64.bat for alternative launcher mode", "ProjectZomboid64.bat already contains ZombieBuddy agent.")
+		reportChange(updatedBatch, "Updated ProjectZomboid64.bat for alternative launcher mode", "ProjectZomboid64.bat already contains the " + PRODUCT_NAME + " agent.")
 	}
 
 	if targets.steamLaunchOptions {
@@ -418,19 +437,12 @@ func detectInstallPaths(includeZB bool) (installPaths, error) {
 
 	paths := installPaths{steam: steamPath, pz: pzPath}
 	if includeZB {
-		copies := detectZBCopies(steamPath, pzPath)
-		if len(copies) == 0 {
-			return installPaths{}, fmt.Errorf("Error detecting ZombieBuddy mod: %v", errZBNotSubscribed())
+		source, err := findKRLSource(installerSourceBaseDirs())
+		if err != nil {
+			return installPaths{}, fmt.Errorf("Error finding %s files: %v", PRODUCT_NAME, err)
 		}
-		chosen := copies[0]
-		if len(copies) > 1 {
-			chosen, err = promptZBCopy(bufio.NewReader(os.Stdin), copies)
-			if err != nil {
-				return installPaths{}, fmt.Errorf("Error selecting ZombieBuddy version: %v", err)
-			}
-		}
-		fmt.Printf("[.] %-*s is at %s (%s)\n", maxLen, "ZB", chosen.path, chosen.channel)
-		paths.zb = chosen.path
+		fmt.Printf("[.] %-*s is at %s\n", maxLen, "KRL", source)
+		paths.zb = source
 	}
 	return paths, nil
 }
@@ -505,8 +517,8 @@ func reportChange(changed bool, changedMessage string, unchangedMessage string) 
 
 func installPreview(pzPath string, steamPath string, zbPath string, targets patchTargets) []string {
 	lines := []string{
-		fmt.Sprintf("copy \"%s\\zbNative.dll\"    to \"%s\\\"", "ZB", "PZ"),
-		fmt.Sprintf("copy \"%s\\ZombieBuddy.jar\" to \"%s\\\"", "ZB", "PZ"),
+		fmt.Sprintf("copy \"%s\\zbNative.dll\"  to \"%s\\\"", "KRL", "PZ"),
+		fmt.Sprintf("copy \"%s\\%s\" to \"%s\\\"", "KRL", KRL_JAR_NAME, "PZ"),
 	}
 	if targets.normalJSON {
 		lines = append(lines, fmt.Sprintf("add \"%s\" to \"%s\"", ZB_LAUNCH_ARG, "ProjectZomboid64.json"))
@@ -582,94 +594,42 @@ func detectPZPath(steamPath string) (string, error) {
 	return "", fmt.Errorf("could not find Project Zomboid installation")
 }
 
-// zbCopy is one subscribed ZombieBuddy Workshop item found on disk.
-type zbCopy struct {
-	channel string // "stable" or "beta"
-	path    string
+// installerSourceBaseDirs lists where to look for the files to install: next to the installer executable, then
+// the local mods folder (%USERPROFILE%\Zomboid\mods\KRLZomBud). KRL ZomBud has no Workshop item yet, and the
+// upstream ZombieBuddy Workshop items are deliberately not used: they contain upstream's jar, not ours.
+func installerSourceBaseDirs() []string {
+	var dirs []string
+	if exe, err := os.Executable(); err == nil {
+		dirs = append(dirs, filepath.Dir(exe))
+	}
+	if home, err := os.UserHomeDir(); err == nil {
+		dirs = append(dirs, filepath.Join(home, "Zomboid", "mods", KRL_MOD_ID))
+	}
+	return dirs
 }
 
-var zbChannels = []struct{ name, id string }{
-	{"stable", ZB_MOD_ID},
-	{"beta", ZB_BETA_MOD_ID},
-}
-
-// detectZBCopies returns every subscribed ZombieBuddy Workshop item found, stable first.
-func detectZBCopies(steamPath string, pzPath string) []zbCopy {
-	var copies []zbCopy
-	for _, ch := range zbChannels {
-		if path, err := findZBPath(steamPath, pzPath, ch.id); err == nil {
-			copies = append(copies, zbCopy{channel: ch.name, path: path})
+// findKRLSource returns the first folder that holds both zbNative.dll and KRLZomBud.jar. Each base dir is tried
+// as is, then its libs/ folder (mod root layout), then mods/KRLZomBud/libs (Workshop item layout).
+func findKRLSource(baseDirs []string) (string, error) {
+	var tried []string
+	for _, base := range baseDirs {
+		if base == "" {
+			continue
+		}
+		for _, dir := range []string{base, filepath.Join(base, "libs"), filepath.Join(base, "mods", KRL_MOD_ID, "libs")} {
+			tried = append(tried, dir)
+			if isRegularFile(filepath.Join(dir, "zbNative.dll")) && isRegularFile(filepath.Join(dir, KRL_JAR_NAME)) {
+				return dir, nil
+			}
 		}
 	}
-	return copies
+	return "", fmt.Errorf("zbNative.dll and %s not found; put them next to the installer. Looked in:\n  %s",
+		KRL_JAR_NAME, strings.Join(tried, "\n  "))
 }
 
-// detectZBPath returns the preferred copy (stable if subscribed, otherwise beta).
-func detectZBPath(steamPath string, pzPath string) (string, error) {
-	copies := detectZBCopies(steamPath, pzPath)
-	if len(copies) == 0 {
-		return "", errZBNotSubscribed()
-	}
-	return copies[0].path, nil
-}
-
-func errZBNotSubscribed() error {
-	return fmt.Errorf("Make sure you've subscribed to https://steamcommunity.com/sharedfiles/filedetails/?id=%s (or the beta: ?id=%s)", ZB_MOD_ID, ZB_BETA_MOD_ID)
-}
-
-func promptZBCopy(reader *bufio.Reader, copies []zbCopy) (zbCopy, error) {
-	lines := make([]string, len(copies))
-	options := make([]promptOption, len(copies))
-	nums := make([]string, len(copies))
-	for i, c := range copies {
-		n := fmt.Sprint(i + 1)
-		nums[i] = n
-		lines[i] = fmt.Sprintf("  %s) %s (%s)", n, c.channel, c.path)
-		options[i] = promptOption{value: c.channel, keys: []string{n, c.channel, c.channel[:1]}}
-	}
-	choices := strings.Join(nums[:len(nums)-1], ", ") + " or " + nums[len(nums)-1]
-	value, err := promptChoice(reader, promptChoiceConfig{
-		title:   "Both stable and beta ZombieBuddy are subscribed. Which one should be installed?",
-		lines:   lines,
-		prompt:  "Choose " + choices + ": ",
-		eofErr:  "no ZombieBuddy version selected",
-		invalid: "Please choose " + choices + ".",
-		options: options,
-	})
-	if err != nil {
-		return zbCopy{}, err
-	}
-	for _, c := range copies {
-		if c.channel == value {
-			return c, nil
-		}
-	}
-	return zbCopy{}, fmt.Errorf("unknown ZombieBuddy version %q", value)
-}
-
-func findZBPath(steamPath string, pzPath string, modID string) (string, error) {
-	// Prefer Workshop content installed in the same Steam library as the game.
-	if pzPath != "" {
-		steamappsPath := filepath.Dir(filepath.Dir(pzPath))
-		gameLibraryPath := filepath.Join(steamappsPath, "workshop", "content", PZ_APP_ID, modID)
-		if _, err := os.Stat(gameLibraryPath); err == nil {
-			return gameLibraryPath, nil
-		}
-	}
-
-	// First check the default path
-	defaultPath := filepath.Join(steamPath, "steamapps", "workshop", "content", PZ_APP_ID, modID)
-	if _, err := os.Stat(defaultPath); err == nil {
-		return defaultPath, nil
-	}
-
-	// Then check libraryfolders.vdf
-	libraryVDF := filepath.Join(steamPath, "steamapps", "libraryfolders.vdf")
-	if _, err := os.Stat(libraryVDF); err == nil {
-		return findAppInLibraries(libraryVDF, "workshop", "content", PZ_APP_ID, modID)
-	}
-
-	return "", errZBNotSubscribed()
+func isRegularFile(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.Mode().IsRegular()
 }
 
 func findAppInLibraries(libraryVDFPath string, subPath ...string) (string, error) {
@@ -766,22 +726,13 @@ func stringMapValue(m map[string]interface{}, key string) (string, bool) {
 }
 
 func copyCoreFiles(pzPath string, zbPath string) error {
-	files := []string{"zbNative.dll", "ZombieBuddy.jar"}
+	files := []string{"zbNative.dll", KRL_JAR_NAME}
 
 	for _, filename := range files {
-		var sources []string
-		if zbPath != "" {
-			sources = append(sources, filepath.Join(zbPath, "mods", "ZombieBuddy", "libs", filename))
+		srcPath := ""
+		if zbPath != "" && isRegularFile(filepath.Join(zbPath, filename)) {
+			srcPath = filepath.Join(zbPath, filename)
 		}
-
-		var srcPath string
-		for _, s := range sources {
-			if _, err := os.Stat(s); err == nil {
-				srcPath = s
-				break
-			}
-		}
-
 		if srcPath == "" {
 			return fmt.Errorf("could not find %s source", filename)
 		}
@@ -824,7 +775,25 @@ func coreFileDeletionPlan(pzPath string) []string {
 }
 
 func coreFilesForRemoval() []string {
-	return []string{"zbNative.dll", "ZombieBuddy.jar", "ZombieBuddy.jar.new"}
+	return append([]string{"zbNative.dll", KRL_JAR_NAME}, legacyCoreFiles()...)
+}
+
+// legacyCoreFiles are files upstream ZombieBuddy put in the game folder. zbNative.dll has the same name and launch
+// hook in both projects; install overwrites it, so it is not listed here.
+func legacyCoreFiles() []string {
+	return []string{LEGACY_JAR_NAME, LEGACY_JAR_NAME + ".new"}
+}
+
+// legacyCoreFilePaths returns the upstream files that exist in the game folder, for removal during install.
+func legacyCoreFilePaths(pzPath string) []string {
+	var paths []string
+	for _, filename := range legacyCoreFiles() {
+		path := filepath.Join(pzPath, filename)
+		if _, err := os.Stat(path); err == nil {
+			paths = append(paths, path)
+		}
+	}
+	return paths
 }
 
 func patchJSONLauncher(pzPath string) (bool, error) {
@@ -887,16 +856,21 @@ func readJSONLauncher(path string) (launcherConfig, bool, error) {
 	return cfg, true, nil
 }
 
+// addZombieBuddyVMArg adds the agent hook, first removing a legacy -javaagent:ZombieBuddy.jar entry so the JVM
+// doesn't start two agents.
 func addZombieBuddyVMArg(args []string) ([]string, bool) {
-	if hasZombieBuddyVMArg(args) {
-		return args, false
+	args, removedLegacy := filterVMArgs(args, isLegacyJavaAgentOption)
+	for _, arg := range args {
+		if isZombieBuddyJavaOption(arg) {
+			return args, removedLegacy
+		}
 	}
 	return append([]string{ZB_LAUNCH_ARG}, args...), true
 }
 
 func hasZombieBuddyVMArg(args []string) bool {
 	for _, arg := range args {
-		if isZombieBuddyJavaOption(arg) {
+		if isAgentHookOption(arg) {
 			return true
 		}
 	}
@@ -904,10 +878,14 @@ func hasZombieBuddyVMArg(args []string) bool {
 }
 
 func removeZombieBuddyVMArg(args []string) ([]string, bool) {
-	filtered := args[:0]
+	return filterVMArgs(args, isAgentHookOption)
+}
+
+func filterVMArgs(args []string, drop func(string) bool) ([]string, bool) {
+	filtered := make([]string, 0, len(args))
 	changed := false
 	for _, arg := range args {
-		if isZombieBuddyJavaOption(arg) {
+		if drop(arg) {
 			changed = true
 			continue
 		}
@@ -1024,9 +1002,13 @@ func javaOptionsAssignment(line string) (int, int, bool) {
 	return keyStart, keyStart + len(prefix), true
 }
 
+// addZombieBuddyJavaOption adds the agent hook to _JAVA_OPTIONS, first removing a legacy -javaagent:ZombieBuddy.jar.
 func addZombieBuddyJavaOption(options string) (string, bool) {
-	if containsZombieBuddyJavaOption(options) {
-		return options, false
+	options, removedLegacy := filterJavaOptions(options, isLegacyJavaAgentOption)
+	for _, field := range strings.Fields(options) {
+		if isZombieBuddyJavaOption(field) {
+			return options, removedLegacy
+		}
 	}
 	if strings.TrimSpace(options) == "" {
 		return ZB_LAUNCH_ARG, true
@@ -1035,11 +1017,15 @@ func addZombieBuddyJavaOption(options string) (string, bool) {
 }
 
 func removeZombieBuddyJavaOption(options string) (string, bool) {
+	return filterJavaOptions(options, isAgentHookOption)
+}
+
+func filterJavaOptions(options string, drop func(string) bool) (string, bool) {
 	fields := strings.Fields(options)
 	filtered := fields[:0]
 	changed := false
 	for _, field := range fields {
-		if isZombieBuddyJavaOption(field) {
+		if drop(field) {
 			changed = true
 			continue
 		}
@@ -1053,15 +1039,26 @@ func removeZombieBuddyJavaOption(options string) (string, bool) {
 
 func containsZombieBuddyJavaOption(options string) bool {
 	for _, field := range strings.Fields(options) {
-		if isZombieBuddyJavaOption(field) {
+		if isAgentHookOption(field) {
 			return true
 		}
 	}
 	return false
 }
 
+// isZombieBuddyJavaOption matches the -agentlib:zbNative hook that this installer writes.
 func isZombieBuddyJavaOption(value string) bool {
 	return value == ZB_LAUNCH_ARG || strings.HasPrefix(value, ZB_LAUNCH_ARG+"=")
+}
+
+// isLegacyJavaAgentOption matches upstream's manual -javaagent:ZombieBuddy.jar hook.
+func isLegacyJavaAgentOption(value string) bool {
+	return value == LEGACY_AGENT_ARG || strings.HasPrefix(value, LEGACY_AGENT_ARG+"=")
+}
+
+// isAgentHookOption matches every hook that install replaces and uninstall removes.
+func isAgentHookOption(value string) bool {
+	return isZombieBuddyJavaOption(value) || isLegacyJavaAgentOption(value)
 }
 
 func copyFile(src, dst string) error {
@@ -1168,9 +1165,9 @@ func patchVDF(path string) (bool, error) {
 
 	currentOptions := launchOptionsFromConfig(pz)
 
-	newOptions := addZombieBuddyLaunchOptions(currentOptions)
-	if hasZombieBuddyLaunchOptions(currentOptions) {
-		fmt.Println("[-] Launch options already contain ZombieBuddy agent.")
+	newOptions, changed := installZombieBuddyLaunchOptions(currentOptions)
+	if !changed {
+		fmt.Println("[-] Launch options already contain the " + PRODUCT_NAME + " agent.")
 		return false, nil
 	}
 
@@ -1280,6 +1277,16 @@ func addZombieBuddyLaunchOptions(options string) string {
 	return ZB_LAUNCH_OPTIONS + " " + options
 }
 
+// installZombieBuddyLaunchOptions removes a legacy -javaagent:ZombieBuddy.jar hook and adds the agent hook if it
+// is missing. It reports whether the options changed.
+func installZombieBuddyLaunchOptions(options string) (string, bool) {
+	cleaned, removedLegacy := stripLaunchOptions(options, steamLegacyJavaAgentLaunchOptionPattern)
+	if steamAgentLibLaunchOptionPattern.MatchString(cleaned) {
+		return cleaned, removedLegacy
+	}
+	return addZombieBuddyLaunchOptions(cleaned), true
+}
+
 // escapeVDFString escapes a value for writing between double quotes in a VDF file; the parser unescapes \\ and \" on read.
 func escapeVDFString(s string) string {
 	return strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(s)
@@ -1290,8 +1297,18 @@ func hasZombieBuddyLaunchOptions(options string) bool {
 	return changed
 }
 
+// stripZombieBuddyLaunchOptions removes both the agent hook and a legacy -javaagent:ZombieBuddy.jar hook.
 func stripZombieBuddyLaunchOptions(options string) (string, bool) {
-	newOptions := strings.Join(strings.Fields(steamZombieBuddyLaunchOptionPattern.ReplaceAllString(options, " ")), " ")
+	stripped, changedAgentLib := stripLaunchOptions(options, steamAgentLibLaunchOptionPattern)
+	stripped, changedLegacy := stripLaunchOptions(stripped, steamLegacyJavaAgentLaunchOptionPattern)
+	if !changedAgentLib && !changedLegacy {
+		return options, false
+	}
+	return stripped, true
+}
+
+func stripLaunchOptions(options string, pattern *regexp.Regexp) (string, bool) {
+	newOptions := strings.Join(strings.Fields(pattern.ReplaceAllString(options, " ")), " ")
 	if newOptions == strings.TrimSpace(options) {
 		return options, false
 	}

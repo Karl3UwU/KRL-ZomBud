@@ -97,7 +97,7 @@ ZombieBuddy can load a known authors list from `authors.json`. Entries look like
 
 `authors.json` is a generated, signed file. Its source of truth is the `authors/` directory, which holds one JSON file per author (e.g. `authors/author-name.json`). The `authors.json` file is rebuilt from `authors/*.json` and re-signed whenever the mod is built.
 
-This list gives ZombieBuddy a stable mapping from SteamID64 to display name and public signing keys. ZombieBuddy syncs `authors.json` from GitHub and caches it in the ZombieBuddy config directory, so new author entries can be added without publishing a ZombieBuddy mod update, and verification can still work when the remote list is temporarily unavailable.
+This list gives ZombieBuddy a stable mapping from SteamID64 to display name and public signing keys. KRL ZomBud reads only the copy of `authors.json` bundled in its jar and checks its signature; it does not download the list at startup (upstream ZombieBuddy synced it from GitHub). New entries reach players with the next release. If the bundled list is missing or its signature fails, the list is empty: unknown authors stay unknown and are never treated as trusted.
 
 When an author has keys in `authors.json`, those keys are authoritative. ZombieBuddy tries them before falling back to reading `JavaModZBS:<key>` from the author's Steam profile.
 

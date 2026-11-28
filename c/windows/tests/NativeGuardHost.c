@@ -128,7 +128,7 @@ void mainCRTStartup(void) {
         int target;
         volatile char* fill = agentOption;
         lstrcatA(agentOption, ",padding=");
-        target = agentTailOffset + 4096 - lstrlenA("ZombieBuddy.jar") - 2;
+        target = agentTailOffset + 4096 - lstrlenA("KRLZomBud.jar") - 2;
         if (lstrcmpW(args[4], L"options-overflow") == 0) target++;
         cursor = lstrlenA(agentOption);
         while (cursor < target) fill[cursor++] = 'a';

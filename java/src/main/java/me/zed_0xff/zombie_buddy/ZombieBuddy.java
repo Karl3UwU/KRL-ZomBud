@@ -36,7 +36,7 @@ public class ZombieBuddy {
     }
     
     public static String getFullVersionString() {
-        return "ZombieBuddy v" + version;
+        return io.github.karl3uwu.zombud.ModIdentity.DISPLAY_NAME + " v" + version;
     }
 
     public static void setAutoFixModOrder(boolean value) {
@@ -45,10 +45,6 @@ public class ZombieBuddy {
 
     public static void setFixMacOSRetina(boolean value) {
         Loader.setFixMacOSRetina(value);
-    }
-
-    public static void setStealthMode(boolean value) {
-        Loader.setStealthMode(value);
     }
 
     // lua-facing variant of Loader.getActiveJavaMods(). Returns a list of modIds for JARs that were loaded this run.

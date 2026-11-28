@@ -1,0 +1,61 @@
+KRL ZomBud
+https://github.com/Karl3UwU/KRL-ZomBud
+
+KRL ZomBud is a fork of ZombieBuddy by Zed (zed-0xff), MIT.
+ZombieBuddy: https://github.com/zed-0xff/ZombieBuddy, Copyright (c) 2025 Andrey "Zed" Zaikin.
+Modifications by Karl3UwU and contributors, under the same MIT License; see LICENSE.txt.
+KRL ZomBud is a separate project: it does not need ZombieBuddy installed, and mods made
+for ZombieBuddy must declare require=\KRLZomBud to work with it.
+
+------------------------------------------------------------------------------
+Third-party software bundled in KRLZomBud.jar
+------------------------------------------------------------------------------
+
+The agent jar (KRLZomBud.jar) includes the following libraries. Their license
+texts are in third_party/licenses/ (and in META-INF/third-party-licenses/ inside
+the jar).
+
+Byte Buddy 1.18.14 (net.bytebuddy:byte-buddy, net.bytebuddy:byte-buddy-agent)
+  https://bytebuddy.net
+  Copyright 2014 - Present Rafael Winterhalter
+  License: Apache License 2.0 (third_party/licenses/Apache-2.0.txt)
+  Byte Buddy also bundles its own repackaged copy of ASM (see below).
+
+ASM 9.10.1 (org.ow2.asm:asm, org.ow2.asm:asm-tree)
+  https://asm.ow2.io
+  Copyright (c) 2000-2011 INRIA, France Telecom. All rights reserved.
+  License: BSD 3-Clause (third_party/licenses/ASM-BSD-3-Clause.txt)
+
+Gson 2.14.0 (com.google.code.gson:gson), relocated to zb.com.google.gson
+  https://github.com/google/gson
+  Copyright 2008 Google Inc.
+  License: Apache License 2.0 (third_party/licenses/Apache-2.0.txt)
+
+Error Prone annotations 2.48.0 (com.google.errorprone:error_prone_annotations),
+pulled in by Gson
+  https://errorprone.info
+  Copyright The Error Prone Authors
+  License: Apache License 2.0 (third_party/licenses/Apache-2.0.txt)
+
+Bouncy Castle 1.86 (org.bouncycastle:bcprov-jdk18on), relocated to zb.org.bouncycastle
+  https://www.bouncycastle.org
+  Copyright (c) 2000-2026 The Legion of the Bouncy Castle Inc.
+  License: MIT (third_party/licenses/BouncyCastle-MIT.txt)
+
+------------------------------------------------------------------------------
+NOTICE from Byte Buddy (reproduced as required by the Apache License 2.0)
+------------------------------------------------------------------------------
+
+Copyright 2014 - Present Rafael Winterhalter
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

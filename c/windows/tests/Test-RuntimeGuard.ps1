@@ -92,7 +92,9 @@ foreach($case in @('original-clean','original-leftovers','guard-clean','guard-le
     $linkItem=Get-Item -LiteralPath $runtimeLink
     if($linkItem.LinkType -ne 'Junction' -or [IO.Path]::GetFullPath($linkItem.Target[0]) -ne [IO.Path]::GetFullPath((Join-Path $GameRoot 'jre64'))){throw 'Unexpected runtime reference; preserve before rebuilding'}
     Copy-Item -LiteralPath $hostExe -Destination (Join-Path $stage 'NativeGuardHost.exe') -Force
+    # The original 2.3.4 DLL loads ZombieBuddy.jar; the KRL ZomBud candidate loads KRLZomBud.jar. Stage both names.
     Copy-Item -LiteralPath $jar -Destination (Join-Path $stage 'ZombieBuddy.jar') -Force
+    Copy-Item -LiteralPath $jar -Destination (Join-Path $stage 'KRLZomBud.jar') -Force
     $dll=if($case.StartsWith('original')){$original}else{$candidate}
     Copy-Item -LiteralPath $dll -Destination (Join-Path $stage 'zbNative.dll') -Force
     if($case -match 'leftovers|preloaded|Unicode') {

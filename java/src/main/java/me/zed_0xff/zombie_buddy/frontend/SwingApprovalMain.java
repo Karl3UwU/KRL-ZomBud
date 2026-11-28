@@ -107,7 +107,7 @@ public final class SwingApprovalMain {
                 return;
             }
 
-            // Author column: SteamID64 → label via KnownAuthors (GitHub + ~/.zombie_buddy cache).
+            // Author column: SteamID64 → label via KnownAuthors (the authors.json bundled in the jar).
             final Map<SteamID64, String> steamIdToDisplayName = KnownAuthors.loadSteamIdToDisplayName();
             SwingUtilities.invokeLater(() -> showDialog(entries, resp, steamIdToDisplayName));
         } catch (Exception e) {
@@ -136,7 +136,7 @@ public final class SwingApprovalMain {
             }
         }
         final boolean showTrustColumn = shouldShowTrustColumn(entries, authorsWithBannedMods);
-        JFrame frame = new JFrame("ZombieBuddy — Java mod approval");
+        JFrame frame = new JFrame("KRL ZomBud — Java mod approval");
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
             @Override

@@ -1,22 +1,19 @@
 /* Real loader callbacks/guard and runtime modules, without creating a JVM.
- * Only callback exports, unload observation, pending-update inspection and
- * an unavailable-JVM failure are controlled inside this standalone test. */
+ * Only callback exports, unload observation and an unavailable-JVM failure
+ * are controlled inside this standalone test. */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shellapi.h>
 static HMODULE WINAPI controlled_module(LPCWSTR name);
 static FARPROC WINAPI controlled_export(HMODULE library, LPCSTR name);
 static BOOL WINAPI observed_free(HMODULE library);
-static DWORD WINAPI no_pending_update(LPCSTR path);
 #define GetModuleHandleW controlled_module
 #define GetProcAddress controlled_export
 #define FreeLibrary observed_free
-#define GetFileAttributesA no_pending_update
 #include "../zbNative.c"
 #undef GetModuleHandleW
 #undef GetProcAddress
 #undef FreeLibrary
-#undef GetFileAttributesA
 
 static WCHAR jvmPath[32768];
 static int vmToken, reservedToken, missingJvm, missingExport;
@@ -28,12 +25,12 @@ static void require_clear(void) {
 }
 static int record_load(void *vm, char *options, void *reserved) {
     require(!missingJvm && vm == &vmToken && reserved == &reservedToken
-        && !lstrcmpA(options, "ZombieBuddy.jar=probe"), 52);
+        && !lstrcmpA(options, "KRLZomBud.jar=probe"), 52);
     loads++; return 23;
 }
 static int record_attach(void *vm, char *options, void *reserved) {
     require(!missingJvm && vm == &vmToken && reserved == &reservedToken
-        && !lstrcmpA(options, "ZombieBuddy.jar=probe"), 53);
+        && !lstrcmpA(options, "KRLZomBud.jar=probe"), 53);
     attaches++; return 29;
 }
 static void record_unload(void *vm) {
@@ -62,10 +59,6 @@ static BOOL WINAPI observed_free(HMODULE library) {
     require(library != NULL && library != runtimeJava, 56);
     frees++; freeEvent = ++event;
     return FreeLibrary(library);
-}
-static DWORD WINAPI no_pending_update(LPCSTR path) {
-    require(!lstrcmpA(path, "ZombieBuddy.jar.new"), 57);
-    return INVALID_FILE_ATTRIBUTES;
 }
 
 void mainCRTStartup(void) {
