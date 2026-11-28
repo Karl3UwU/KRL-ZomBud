@@ -29,7 +29,6 @@ import me.zed_0xff.zombie_buddy.transformers.asmtree.Converter;
 import me.zed_0xff.zombie_buddy.transformers.asmtree.Publicizer;
 import me.zed_0xff.zombie_buddy.transformers.asmtree.Resolver;
 import me.zed_0xff.zombie_buddy.transformers.asmtree.ShadowRewrite;
-import me.zed_0xff.zombie_buddy.transformers.bytebuddy.ZB2Compat;
 
 /** Shared transformer registry and jar/class pipeline (used by Loader and jardump). */
 public final class Pipeline {
@@ -55,7 +54,6 @@ public final class Pipeline {
     }
 
     private static final TransSpec[] TRANS_SPECS = {
-        new TransSpec("compat",   ZB2Compat.class,       "Convert ZB 2.x @Patch annotations", TransOpt.DEFAULT),
         new TransSpec("resolve",  Resolver.class,        "Resolve alternative names in annotations", TransOpt.DEFAULT),
         new TransSpec("convert",  Converter.class,       "Convert ZombieBuddy annotations to ByteBuddy annotations", TransOpt.DEFAULT),
         new TransSpec("bind",     Unshadow.class,          "Remap @Shadow types to patch targets", TransOpt.DEFAULT),
