@@ -82,7 +82,34 @@ public class VersionCheckTest {
         assertFalse(JavaModInfo.isVersionInRange(current, "1.2.4", "2.0.0"));
         assertFalse(JavaModInfo.isVersionInRange(current, "1.0.0", "1.2.2"));
 
-        // ZB version declarations use the same numeric-only comparator as Utils.compareVersions.
-        assertTrue(JavaModInfo.isVersionInRange("1.2.3-beta", "1.2.3", "1.2.3"));
+        // A prerelease sorts before its release (same order as Utils.compareVersionsForUpdate).
+        assertFalse(JavaModInfo.isVersionInRange("1.2.3-beta", "1.2.3", "1.2.3"));
+    }
+
+    @Test
+    void isVersionInRange_ordersPrereleases() {
+        // min: a prerelease of the min version is too old
+        assertFalse(JavaModInfo.isVersionInRange("3.0.0-beta3", "3.0.0", null));
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0",       "3.0.0", null));
+        assertTrue (JavaModInfo.isVersionInRange("3.0.1-beta1", "3.0.0", null));
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0-beta3", "3.0.0-beta3", null));
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0-beta3", "3.0.0-beta2", null));
+        assertFalse(JavaModInfo.isVersionInRange("3.0.0-beta3", "3.0.0-beta4", null));
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0-beta1", "3.0.0-alpha9", null));
+
+        // max: a prerelease of the max version is still in range, the next patch is not
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0-beta3", null, "3.0.0"));
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0",       null, "3.0.0"));
+        assertFalse(JavaModInfo.isVersionInRange("3.0.1-beta1", null, "3.0.0"));
+        assertFalse(JavaModInfo.isVersionInRange("3.0.0",       null, "3.0.0-beta3"));
+        assertFalse(JavaModInfo.isVersionInRange("3.0.0-beta10", null, "3.0.0-beta9"));
+
+        // prerelease-only window
+        assertTrue (JavaModInfo.isVersionInRange("3.0.0-beta3", "3.0.0-beta1", "3.0.0-beta9"));
+        assertFalse(JavaModInfo.isVersionInRange("3.0.0-alpha", "3.0.0-beta1", "3.0.0-beta9"));
+
+        // unknown own version (dev build) always passes
+        assertTrue (JavaModInfo.isVersionInRange("unknown", "9.0.0", "9.9.9"));
+        assertTrue (JavaModInfo.isVersionInRange(null,      "9.0.0", "9.9.9"));
     }
 }

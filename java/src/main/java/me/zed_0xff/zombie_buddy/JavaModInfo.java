@@ -21,10 +21,10 @@ record JavaModInfo(
     Path infPath,        // mod.info file path
     Path jarPath,        // JAR file path
     String javaPkgName,  // Package name
-    String zbVersionMin, // Minimum ZombieBuddy version required
-    String zbVersionMax, // Maximum ZombieBuddy version required
+    String krlVersionMin, // Minimum KRL ZomBud version required (KRLVersionMin)
+    String krlVersionMax, // Maximum KRL ZomBud version required (KRLVersionMax)
     String displayName,  // From {@code name=} in mod.info; may be null
-    boolean javaPreload  // From {@code javaPreload=true} in mod.info; both this and MANIFEST.MF ZB-Preload must be set
+    boolean javaPreload  // From {@code javaPreload=true} in mod.info; both this and MANIFEST.MF KRL-Preload must be set
 ) {
     /** Project Zomboid Steam app id used in Workshop paths: .../content/108600/<publishedfileid>/... */
     private static final Pattern WORKSHOP_ITEM_ID_IN_PATH = Pattern.compile("/content/" + SteamWorkshop.PZ_APP_ID + "/([0-9]+)/", Pattern.CASE_INSENSITIVE);
@@ -102,24 +102,24 @@ record JavaModInfo(
     }
     
     /**
-     * One (jarFile, zbVersionMin, zbVersionMax) triple parsed from mod.info. The numeric suffix on
-     * javaJarFileN / zbVersionMinN / zbVersionMaxN keys (implicitly 0 when absent) ties these three
+     * One (jarFile, krlVersionMin, krlVersionMax) triple parsed from mod.info. The numeric suffix on
+     * javaJarFileN / krlVersionMinN / krlVersionMaxN keys (implicitly 0 when absent) ties these three
      * fields together, so a single mod.info can offer several JARs built against different
-     * ZombieBuddy API versions; the loader picks the first candidate whose range covers the running
-     * ZombieBuddy version. Plain ZB 2.x installs don't understand the numbered keys and only ever see
-     * the suffix-less (index 0) entry, so existing single-jar mod.info files keep working as-is.
+     * KRL ZomBud API versions; the loader picks the first candidate (lowest index) whose range covers
+     * the running KRL ZomBud version. Keys are case-insensitive ({@code KRLVersionMin2=...}).
+     * ZombieBuddy's {@code ZBVersionMin}/{@code ZBVersionMax} keys are not read.
      */
-    private record JarCandidate(String jarFilePath, String zbVersionMin, String zbVersionMax) {}
+    private record JarCandidate(String jarFilePath, String krlVersionMin, String krlVersionMax) {}
 
     private static final class CandidateBuilder {
         String jarFilePath;
-        String zbVersionMin;
-        String zbVersionMax;
+        String krlVersionMin;
+        String krlVersionMax;
     }
 
     private static final Pattern JAR_KEY = Pattern.compile("^javajarfile(\\d*)=");
-    private static final Pattern MIN_KEY = Pattern.compile("^zbversionmin(\\d*)=");
-    private static final Pattern MAX_KEY = Pattern.compile("^zbversionmax(\\d*)=");
+    private static final Pattern MIN_KEY = Pattern.compile("^krlversionmin(\\d*)=");
+    private static final Pattern MAX_KEY = Pattern.compile("^krlversionmax(\\d*)=");
 
     /**
      * Internal record to hold parsed values from a mod.info file.
@@ -140,11 +140,11 @@ record JavaModInfo(
         for (int i = 0; i < candidates.size(); i++) {
             if (i > 0) sb.append(", ");
             JarCandidate c = candidates.get(i);
-            sb.append(c.zbVersionMin() != null ? c.zbVersionMin() : "any")
+            sb.append(c.krlVersionMin() != null ? c.krlVersionMin() : "any")
               .append(" to ")
-              .append(c.zbVersionMax() != null ? c.zbVersionMax() : "any");
+              .append(c.krlVersionMax() != null ? c.krlVersionMax() : "any");
         }
-        sb.append("; ZombieBuddy version: ").append(ZombieBuddy.getVersion()).append(")");
+        sb.append("; KRL ZomBud version: ").append(ZombieBuddy.getVersion()).append(")");
         return sb.toString();
     }
 
@@ -174,7 +174,7 @@ record JavaModInfo(
                 continue;
             }
             anyPlatformMatch = true;
-            if (isVersionInRange(ZombieBuddy.getVersion(), candidate.zbVersionMin(), candidate.zbVersionMax())) {
+            if (isVersionInRange(ZombieBuddy.getVersion(), candidate.krlVersionMin(), candidate.krlVersionMax())) {
                 versionMatch = candidate;
                 break;
             }
@@ -199,8 +199,8 @@ record JavaModInfo(
             infPath,
             jarPath,
             javaPkgName,
-            versionMatch.zbVersionMin(),
-            versionMatch.zbVersionMax(),
+            versionMatch.krlVersionMin(),
+            versionMatch.krlVersionMax(),
             parsed.displayName(),
             parsed.javaPreload()
         );
@@ -258,10 +258,10 @@ record JavaModInfo(
                     }
                 } else if ((m = MIN_KEY.matcher(lowerLine)).find()) {
                     int idx = m.group(1).isEmpty() ? 0 : Integer.parseInt(m.group(1));
-                    candidates.computeIfAbsent(idx, k -> new CandidateBuilder()).zbVersionMin = value;
+                    candidates.computeIfAbsent(idx, k -> new CandidateBuilder()).krlVersionMin = value;
                 } else if ((m = MAX_KEY.matcher(lowerLine)).find()) {
                     int idx = m.group(1).isEmpty() ? 0 : Integer.parseInt(m.group(1));
-                    candidates.computeIfAbsent(idx, k -> new CandidateBuilder()).zbVersionMax = value;
+                    candidates.computeIfAbsent(idx, k -> new CandidateBuilder()).krlVersionMax = value;
                 } else if (lowerLine.startsWith("name=")) {
                     if (displayName == null && !value.isEmpty()) {
                         displayName = value;
@@ -282,11 +282,11 @@ record JavaModInfo(
         for (Integer idx : indices) {
             CandidateBuilder b = candidates.get(idx);
             if (Utils.isBlank(b.jarFilePath)) {
-                Logger.error("Warning! zbVersionMin" + (idx == 0 ? "" : idx) + "/zbVersionMax" + (idx == 0 ? "" : idx)
+                Logger.error("Warning! KRLVersionMin" + (idx == 0 ? "" : idx) + "/KRLVersionMax" + (idx == 0 ? "" : idx)
                     + " given without a matching javaJarFile" + (idx == 0 ? "" : idx) + ": " + infPath);
                 continue;
             }
-            jarCandidates.add(new JarCandidate(b.jarFilePath, b.zbVersionMin, b.zbVersionMax));
+            jarCandidates.add(new JarCandidate(b.jarFilePath, b.krlVersionMin, b.krlVersionMax));
         }
 
         return new ParsedValues(jarCandidates, javaPkgName, displayName, javaPreload);
@@ -372,7 +372,9 @@ record JavaModInfo(
     }
 
     /**
-     * Checks if a version is within the specified minimum and maximum range.
+     * Checks if a version is within the specified minimum and maximum range (both inclusive).
+     * Uses {@link Utils#compareVersionsForUpdate}, so a prerelease sorts before its release:
+     * {@code 3.0.0-beta3 < 3.0.0}, and {@code KRLVersionMin=3.0.0} rejects {@code 3.0.0-beta3}.
      * 
      * @param currentVersion The current version to check
      * @param minVersion The minimum version allowed (inclusive), or null if no minimum
@@ -387,13 +389,13 @@ record JavaModInfo(
         }
         
         if (!Utils.isBlank(minVersion)) {
-            if (Utils.compareVersions(currentVersion, minVersion) < 0) {
+            if (Utils.compareVersionsForUpdate(currentVersion, minVersion) < 0) {
                 return false;
             }
         }
         
         if (!Utils.isBlank(maxVersion)) {
-            if (Utils.compareVersions(currentVersion, maxVersion) > 0) {
+            if (Utils.compareVersionsForUpdate(currentVersion, maxVersion) > 0) {
                 return false;
             }
         }
