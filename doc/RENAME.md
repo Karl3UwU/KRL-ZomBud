@@ -1,54 +1,52 @@
-# Rename: ZombieBuddy → KRL ZomBud
+# KRL ZomBud and ZombieBuddy
 
-KRL ZomBud is a fork of ZombieBuddy (by Zed, MIT). It installs under its own names so it can't be confused with, or
-overwrite, upstream's Workshop item:
+KRL ZomBud is a fork of [ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy) by Zed (zed-0xff), released under the
+same MIT license (see `LICENSE.txt` and `NOTICE`). It is a **standalone** project: it does not need ZombieBuddy
+installed, and it does not pretend to be ZombieBuddy. Mods built for ZombieBuddy need a small update to work with it.
+
+## Names
 
 | | Upstream ZombieBuddy | KRL ZomBud |
 |---|---|---|
 | Display name | ZombieBuddy | KRL ZomBud |
 | Mod id (`mod.info`, `mods/<id>`) | `ZombieBuddy` | `KRLZomBud` |
 | Agent jar | `ZombieBuddy.jar` | `KRLZomBud.jar` |
-| Native shim | `zbNative.dll`, `-agentlib:zbNative` | unchanged |
-| Java package of existing classes | `me.zed_0xff.zombie_buddy` | unchanged (compatibility) |
-| Java package for new code | — | `io.github.karl3uwu.zombud` |
-| Lua API (`ZombieBuddy.*`), Lua file names, mod options id | | unchanged |
-| Config dir | `~/.zombie_buddy` | unchanged |
-| Version used by `ZBVersionMin`/`ZBVersionMax` | | unchanged (`java/VERSION`) |
+| Native shim | `zbNative.dll`, `-agentlib:zbNative` | same file name and launch option |
+| Java package for new code | n/a | `io.github.karl3uwu.zombud` |
 
-The names are defined in one place per language: `ModIdentity` (Java), `MOD_ID` in `java/build.gradle`, `ZB_JAR` in
+The names are defined once per language: `ModIdentity` (Java), `MOD_ID` in `java/build.gradle`, `ZB_JAR` in
 `c/windows/zbNative.c` and `KRL_MOD_ID` in `installer/installer.go`. Keep them in sync.
 
-## Mods that `require=\ZombieBuddy`
+Not changed yet (still being decided): the `me.zed_0xff.zombie_buddy` Java package and its annotations, the
+2.x→3.x compatibility transformers, the `ZBVersionMin`/`ZBVersionMax` keys, the `ZombieBuddy` Lua global and the
+`~/.zombie_buddy` config directory.
 
-The game resolves `require=` by mod id: `ChooseGameInfo.readModInfoAux()` parses the line and calls
-`Mod.setRequire()`, and everything else (the mod selector, `Mod.isAvailableRequired()`,
-`ZomboidFileSystem.loadModAndRequired()`) reads the list back through `getRequire()`.
+## Updating a mod built for ZombieBuddy
 
-KRL ZomBud patches `ChooseGameInfo$Mod.setRequire()` (`patches/Patch_ModRequireAlias.java`) and rewrites a
-`ZombieBuddy` entry to `KRLZomBud` before it is stored (`ModIdentity.rewriteLegacyRequires`). So:
+What a mod author changes today:
 
-- a mod with `require=\ZombieBuddy` is available and loads KRL ZomBud's mod as its dependency;
-- if a mod requires both, the entry appears once;
-- other entries are left exactly as they were.
+1. **`mod.info`:** replace `require=\ZombieBuddy` with `require=\KRLZomBud`. The game resolves `require=` by mod id,
+   and KRL ZomBud does not answer to `ZombieBuddy`. A mod that still requires `ZombieBuddy` shows as missing its
+   requirement.
+2. **Version range, if you set one:** `ZBVersionMin`/`ZBVersionMax` are compared with KRL ZomBud's version, which for
+   now continues ZombieBuddy's numbering (`java/VERSION`, currently `3.0.0-beta3`). Check that your range includes it.
+3. **Build (optional):** compile against `KRLZomBud.jar` instead of `ZombieBuddy.jar`
+   (`compileOnly files("path/to/KRLZomBud.jar")`).
 
-The rewrite needs the agent, which is always the case when KRL ZomBud's Java code runs at all. Without the agent such
-mods show as missing their requirement, just as they would without upstream ZombieBuddy.
+Nothing else changes for now: `javaJarFile`, `javaPkgName`, the `@Patch`/`@Exposer` annotations and their package, the
+Lua API (`ZombieBuddy.*`) and `.zbs` signing all work as before. When these change, this list will say so.
 
-Only `require=` is mapped. A server's `Mods=` list or a saved mod list that names `ZombieBuddy` directly still means
-upstream's mod; switch those to `KRLZomBud`.
-
-`ZBVersionMin`/`ZBVersionMax` are compared with `java/VERSION`, which still follows ZombieBuddy's version line
-(`3.0.0-beta3`), so existing version ranges keep working.
+The `require=` line can't name "either one", so a mod can't depend on both projects with a single `mod.info`.
 
 ## If upstream ZombieBuddy is installed too
 
+KRL ZomBud doesn't need it, and running both isn't supported. What happens:
+
 - **Upstream mod enabled next to `KRLZomBud`.** Its `mod.info` declares the same `javaPkgName`, so the loader treats
-  its jar as itself and never loads it, and logs a warning saying so. Its Lua files have the same paths as ours, so
-  the game keeps only one copy. Requirements on `ZombieBuddy` resolve to `KRLZomBud`.
+  its jar as itself and never loads it, and logs a warning saying so.
 - **Two agent jars in one JVM** (e.g. `-javaagent:ZombieBuddy.jar` next to `-agentlib:zbNative`). Both jars contain
-  the same classes, so only the first one on the class path runs; the second `premain` is ignored as a duplicate.
-  At startup KRL ZomBud lists every agent jar it finds and marks which one is active
-  (`io.github.karl3uwu.zombud.AgentConflicts`). Remove the extra hook.
+  the same classes, so only the first one on the class path runs. At startup KRL ZomBud lists every agent jar it finds
+  and marks which one is active (`io.github.karl3uwu.zombud.AgentConflicts`). Remove the extra hook.
 - **`zbNative.dll`** has the same file name and launch option in both projects. Whichever was installed last decides
   which jar is loaded (`KRLZomBud.jar` or `ZombieBuddy.jar`).
 

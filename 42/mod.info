@@ -4,7 +4,7 @@ author=Karl3UwU (based on ZombieBuddy by Zed)
 url=https://github.com/Karl3UwU/KRL-ZomBud
 poster=icon_beta_256.png
 icon=icon_beta_128.png
-description=Java modding environment for Project Zomboid, based on ZombieBuddy by Zed. Mods that require ZombieBuddy work with it.
+description=Java modding environment for Project Zomboid. A fork of ZombieBuddy by Zed (MIT). Mods must list KRLZomBud as their requirement.
 
 javaJarFile=../libs/KRLZomBud.jar
 javaPkgName=me.zed_0xff.zombie_buddy

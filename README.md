@@ -1,6 +1,6 @@
 # ZombieBuddy (fork)
 
-> **This is a community fork of [zed-0xff/ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy)**, created to grow it into a
+> **KRL ZomBud is a fork of [ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy) by Zed (zed-0xff), MIT**, created to grow it into a
 > Fabric-style modding environment for Project Zomboid: a small stable loader, a richer patching API,
 > build tooling for modders, and open, automated releases. See **[doc/ROADMAP.md](doc/ROADMAP.md)** for the plan.
 >
@@ -50,7 +50,7 @@ Previously, Java mods for Project Zomboid required bundling `.class` files and m
 
 ### For Modders
 
-1. Add `require=\ZombieBuddy`, `javaJarFile`, and `javaPkgName` to your `mod.info`
+1. Add `require=\KRLZomBud`, `javaJarFile`, and `javaPkgName` to your `mod.info`
 2. Create patches using `@Patch` annotations
 3. Build your JAR and place it in `media/java/`
 

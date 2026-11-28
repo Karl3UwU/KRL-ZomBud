@@ -49,12 +49,12 @@ single explicit `LoaderContext`, and everything a mod can touch lives in `api`.
 1. **Name and identity.** *Decided: **KRL ZomBud**.*
    - Mod id, Workshop item and jar: `KRLZomBud` (`KRLZomBud.jar`).
    - Java package root for new code: `io.github.karl3uwu.zombud`.
-   - Upstream's `me.zed_0xff.zombie_buddy.*` classes stay for compatibility (decision 2), so existing mods keep
-     working, and the loader can still satisfy `require=\ZombieBuddy`.
-   - The user-visible rename (mod id, jar, installer, `require=\ZombieBuddy` compatibility) landed in M0; see
-     [RENAME.md](RENAME.md). Moving the legacy package itself waits for the phase 2 restructure.
-2. **Compatibility with existing ZombieBuddy mods.** *Recommended: yes.* Better FPS, Project Viewpoint and others are
-   compiled against `me.zed_0xff.zombie_buddy.*`; without a compatibility layer the new environment starts with zero mods.
+   - The user-visible rename (mod id, jar, installer) landed in M0; see [RENAME.md](RENAME.md). What happens to the
+     legacy `me.zed_0xff.zombie_buddy.*` package is part of decision 2.
+2. **Compatibility with existing ZombieBuddy mods.** *Decided: KRL ZomBud is standalone.* It doesn't need ZombieBuddy
+   installed and doesn't answer to `require=\ZombieBuddy`; mods update their `mod.info` to `require=\KRLZomBud`
+   ([RENAME.md](RENAME.md) lists what a mod author changes). Still open: whether to keep the legacy package, the
+   2.x→3.x compatibility transformers and the `ZBVersionMin`/`ZBVersionMax` keys.
 3. **Patching engine.** Keep ByteBuddy behind a cleaner API, or adopt SpongePowered Mixin (injection at call sites,
    redirects, local-variable changes, added fields and interfaces, large existing documentation). *Recommended: a time-boxed
    Mixin spike before committing.*

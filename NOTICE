@@ -1,9 +1,11 @@
 KRL ZomBud
 https://github.com/Karl3UwU/KRL-ZomBud
 
-A fork of ZombieBuddy, Copyright (c) 2025 Andrey "Zed" Zaikin,
-https://github.com/zed-0xff/ZombieBuddy. Modifications by Karl3UwU and contributors.
-Licensed under the MIT License; see LICENSE.txt.
+KRL ZomBud is a fork of ZombieBuddy by Zed (zed-0xff), MIT.
+ZombieBuddy: https://github.com/zed-0xff/ZombieBuddy, Copyright (c) 2025 Andrey "Zed" Zaikin.
+Modifications by Karl3UwU and contributors, under the same MIT License; see LICENSE.txt.
+KRL ZomBud is a separate project: it does not need ZombieBuddy installed, and mods made
+for ZombieBuddy must declare require=\KRLZomBud to work with it.
 
 ------------------------------------------------------------------------------
 Third-party software bundled in KRLZomBud.jar

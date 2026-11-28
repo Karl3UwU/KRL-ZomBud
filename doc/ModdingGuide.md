@@ -25,7 +25,7 @@ YourMod/
 Add the following entries to your `mod.info` file:
 
 ```ini
-require=\ZombieBuddy
+require=\KRLZomBud
 javaJarFile=media/java/YourMod.jar
 javaPkgName=com.yourname.yourmod
 ZBVersionMin=1.0.0
@@ -34,7 +34,7 @@ ZBVersionMax=1.5.0
 
 | Field | Description |
 |-------|-------------|
-| `require=\ZombieBuddy` | Declares dependency on ZombieBuddy framework |
+| `require=\KRLZomBud` | Declares dependency on KRL ZomBud. (`require=\ZombieBuddy` is upstream's id and is not accepted; see [RENAME.md](RENAME.md).) |
 | `javaJarFile` | Path to your JAR file relative to the mod version directory. **Required** for Java code. |
 | `javaPkgName` | The package name for your Main class and patches. **Mandatory** if `javaJarFile` is specified. |
 | `ZBVersionMin` | (Optional) Minimum ZombieBuddy version required (inclusive) |

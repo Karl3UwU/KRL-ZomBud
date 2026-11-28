@@ -927,8 +927,8 @@ public class Loader {
                 if (ModIdentity.isLegacyModId(ctx.modId)) {
                     skipReason = " (upstream ZombieBuddy mod: its Java code is not loaded, " + ModIdentity.DISPLAY_NAME + " is the active agent)";
                     Logger.warn("Upstream ZombieBuddy mod is enabled together with " + ModIdentity.DISPLAY_NAME
-                        + ". Its Java code is not loaded; mods that require ZombieBuddy are served by " + ModIdentity.MOD_ID
-                        + ". Disable or unsubscribe ZombieBuddy to avoid confusion.");
+                        + ". Its Java code is not loaded. " + ModIdentity.DISPLAY_NAME + " is a separate fork: mods must"
+                        + " require " + ModIdentity.MOD_ID + ". Disable or unsubscribe ZombieBuddy.");
                 }
             }
             
