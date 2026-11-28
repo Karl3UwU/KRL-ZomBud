@@ -390,7 +390,7 @@ public class Loader {
     private static final class PreloadMods {
         private PreloadMods() {}
 
-        private static final String MANIFEST_ATTR = "ZB-Preload";
+        private static final String MANIFEST_ATTR = "KRL-Preload";
 
         private static void add(String id, Path infPath, Path jarPath) {
             Config nextConfig = g_config.withPreloadMod(id, new Config.PreloadMod(infPath, jarPath));
@@ -414,7 +414,7 @@ public class Loader {
         }
 
         /**
-         * Returns true when the JAR's {@code META-INF/MANIFEST.MF} contains {@code ZB-Preload: true}.
+         * Returns true when the JAR's {@code META-INF/MANIFEST.MF} contains {@code KRL-Preload: true}.
          * Callers must verify the JAR's ZBS signature before trusting this value.
          */
         static boolean hasManifestPreload(Path jarPath) {
