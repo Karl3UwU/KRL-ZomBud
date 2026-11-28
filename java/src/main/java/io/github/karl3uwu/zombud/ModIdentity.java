@@ -24,6 +24,9 @@ public final class ModIdentity {
     /** Upstream ZombieBuddy's agent jar name. */
     public static final String LEGACY_JAR_NAME = LEGACY_MOD_ID + ".jar";
 
+    /** Upstream ZombieBuddy's Java package (its {@code javaPkgName}); a mod declaring it is never loaded. */
+    public static final String LEGACY_JAVA_PKG = "me.zed_0xff.zombie_buddy";
+
     public static boolean isLegacyModId(String modId) {
         return modId != null && modId.trim().equals(LEGACY_MOD_ID);
     }

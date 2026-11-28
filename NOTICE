@@ -26,7 +26,7 @@ ASM 9.10.1 (org.ow2.asm:asm, org.ow2.asm:asm-tree)
   Copyright (c) 2000-2011 INRIA, France Telecom. All rights reserved.
   License: BSD 3-Clause (third_party/licenses/ASM-BSD-3-Clause.txt)
 
-Gson 2.14.0 (com.google.code.gson:gson), relocated to zb.com.google.gson
+Gson 2.14.0 (com.google.code.gson:gson), relocated to io.github.karl3uwu.zombud.shaded.gson
   https://github.com/google/gson
   Copyright 2008 Google Inc.
   License: Apache License 2.0 (third_party/licenses/Apache-2.0.txt)
@@ -37,7 +37,7 @@ pulled in by Gson
   Copyright The Error Prone Authors
   License: Apache License 2.0 (third_party/licenses/Apache-2.0.txt)
 
-Bouncy Castle 1.86 (org.bouncycastle:bcprov-jdk18on), relocated to zb.org.bouncycastle
+Bouncy Castle 1.86 (org.bouncycastle:bcprov-jdk18on), relocated to io.github.karl3uwu.zombud.shaded.bouncycastle
   https://www.bouncycastle.org
   Copyright (c) 2000-2026 The Legion of the Bouncy Castle Inc.
   License: MIT (third_party/licenses/BouncyCastle-MIT.txt)

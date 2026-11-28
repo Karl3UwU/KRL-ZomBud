@@ -1,0 +1,54 @@
+package io.github.karl3uwu.zombud.transformers;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import io.github.karl3uwu.zombud.api.Patch;
+import net.bytebuddy.asm.Advice;
+
+class Converter_Patch_NameMap_Test extends AbstractTest {
+    protected static Stream<Arguments> provideClasses() {
+        return withTransformer(io.github.karl3uwu.zombud.transformers.asmtree.Converter.class);
+    }
+
+    @Patch(className = "com.example.TestClass", methodName = "getFoo")
+    static class Target1 {
+        @Patch.OnEnter
+        static void m1(@Patch.Local(Patch.NAMEMAP_LOCAL_NAME) Map<String, String> nameMap) {
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideClasses")
+    void test(Class<? extends Transformer> cls) throws Exception {
+        var ctx = new TestClassContext(Target1.class);
+        byte[] bytes = ctx.getBytes();
+
+        var p = ctx.getMethod("m1").getParameters().getOnly();
+        assertThat(p.getDeclaredAnnotations())
+            .hasSize(1);
+
+        var run = runTransformer(ctx, bytes, cls);
+        try {
+            assertTransformed(run);
+            assertThat(run.bytes()).isNotNull();
+
+            p = ctx.getMethod("m1").getParameters().getOnly();
+            assertThat(p.getDeclaredAnnotations())
+                .hasSize(2);
+
+            var a = p.getDeclaredAnnotations().filter(x -> x.getAnnotationType().isAssignableTo(Advice.Local.class)).getOnly();
+            assertThat(a.getValue("value").resolve())
+                .isEqualTo(Patch.NAMEMAP_LOCAL_NAME);
+        } catch (Throwable t) {
+            printDumps(run.dumps());
+            throw t;
+        }
+    }
+}

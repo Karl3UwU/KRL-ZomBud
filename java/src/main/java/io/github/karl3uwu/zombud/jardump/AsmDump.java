@@ -1,0 +1,522 @@
+package io.github.karl3uwu.zombud.jardump;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import io.github.karl3uwu.zombud.CLIUtil;
+import io.github.karl3uwu.zombud.Logger;
+import io.github.karl3uwu.zombud.Utils;
+import io.github.karl3uwu.zombud.annotations.Internal;
+import io.github.karl3uwu.zombud.transformers.JarContext;
+import io.github.karl3uwu.zombud.transformers.bytebuddy.AbstractTransformer;
+import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.type.TypeDescription;
+// shaded org.objectweb.asm
+import net.bytebuddy.jar.asm.AnnotationVisitor;
+import net.bytebuddy.jar.asm.ClassReader;
+import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.jar.asm.FieldVisitor;
+import net.bytebuddy.jar.asm.MethodVisitor;
+import net.bytebuddy.jar.asm.Opcodes;
+import net.bytebuddy.jar.asm.Type;
+
+public class AsmDump extends CLIUtil {
+    /** Upstream ZombieBuddy annotations: KRL ZomBud doesn't process them, so they are shown in full and flagged. */
+    private static final String UPSTREAM_ANN_PREFIX = "me.zed_0xff.zombie_buddy.";
+
+    private static boolean isDeprecated(String name) {
+        String flatName = name.replace('/', '.').replace('$', '.');
+        if (flatName.startsWith("L")) flatName = flatName.substring(1);
+        if (flatName.endsWith(";"))   flatName = flatName.substring(0, flatName.length() - 1);
+
+        return flatName.startsWith(UPSTREAM_ANN_PREFIX);
+    }
+
+    private static final int ASM_API = Opcodes.ASM9;
+    private final JarContext m_ctx;
+    private boolean m_simpleNames = true;
+
+    public AsmDump(JarContext ctx) {
+        m_ctx = ctx;
+    }
+
+    public void setSimpleNames(boolean simpleNames) {
+        m_simpleNames = simpleNames;
+    }
+
+    // "Ljava/util/regex/Pattern;" -> "java.util.regex.Pattern"
+    static String typeName(String desc) {
+        return Type.getType(desc).getClassName();
+    }
+
+    String annotationName(String desc) {
+        return "@" + (m_simpleNames ? simpleName(desc) : desc);
+    }
+
+    // "Ljava/util/regex/Pattern;" -> "Pattern"
+    static String simpleName(String desc) {
+        String name = Type.getType(desc).getClassName();
+
+        if (isDeprecated(name)) {
+            return name;
+        }
+
+        int idx = name.lastIndexOf('.');
+        return idx >= 0 ? name.substring(idx + 1) : name;
+    }
+
+    private record Mod(int flag, String label) {}
+
+    private static final Mod[] CLASS_MODS  = { new Mod(Opcodes.ACC_PUBLIC, "public"), new Mod(Opcodes.ACC_FINAL, "final"), new Mod(Opcodes.ACC_ABSTRACT, "abstract"), new Mod(Opcodes.ACC_INTERFACE, "interface"), new Mod(Opcodes.ACC_ENUM, "enum") };
+    private static final Mod[] METHOD_MODS = { new Mod(Opcodes.ACC_PUBLIC, "public"), new Mod(Opcodes.ACC_PRIVATE, "private"), new Mod(Opcodes.ACC_PROTECTED, "protected"), new Mod(Opcodes.ACC_STATIC, "static"), new Mod(Opcodes.ACC_FINAL, "final"), new Mod(Opcodes.ACC_SYNCHRONIZED, "synchronized"), new Mod(Opcodes.ACC_ABSTRACT, "abstract") };
+    private static final Mod[] FIELD_MODS  = { new Mod(Opcodes.ACC_PUBLIC, "public"), new Mod(Opcodes.ACC_PRIVATE, "private"), new Mod(Opcodes.ACC_PROTECTED, "protected"), new Mod(Opcodes.ACC_STATIC, "static"), new Mod(Opcodes.ACC_FINAL, "final"), new Mod(Opcodes.ACC_VOLATILE, "volatile"), new Mod(Opcodes.ACC_TRANSIENT, "transient"), new Mod(Opcodes.ACC_SYNTHETIC, "synthetic"), new Mod(Opcodes.ACC_ENUM, "enum") };
+
+    private static String formatMods(int access, Mod[] mods) {
+        List<String> found = new ArrayList<>();
+        for (Mod m : mods) if ((access & m.flag()) != 0) found.add(m.label());
+        return String.join(" ", colorizeModifiers(found));
+    }
+
+    static String classModifiers(int access)  { return formatMods(access, CLASS_MODS); }
+    static String methodModifiers(int access) { return formatMods(access, METHOD_MODS); }
+    static String fieldModifiers(int access)  { return formatMods(access, FIELD_MODS); }
+
+    static ArrayList<String> colorizeModifiers(List<String> mods) {
+        ArrayList<String> colored = new ArrayList<>(mods);
+        for (int i = 0; i < mods.size(); i++) {
+            String mod = mods.get(i);
+            if (_modifierColors.containsKey(mod)) {
+                colored.set(i, colorize(mod, _modifierColors.get(mod)));
+            }
+        }
+        return colored;
+    }
+
+    static final HashMap<String, Map<String, MethodDescription>> _annMemberCache = new HashMap<>();
+
+    Map<String, MethodDescription> getAnnotationMembers(TypeDescription td) {
+        Map<String, MethodDescription> members = new LinkedHashMap<>();
+        for (var m : td.getDeclaredMethods()) {
+            members.put(m.getName(), m);
+        }
+        return members;
+    }
+
+    static TypeDescription box(TypeDescription t) {
+        if (!t.isPrimitive()) return t;
+
+        if (t.represents(boolean.class)) return TypeDescription.ForLoadedType.of(Boolean.class);
+        if (t.represents(int.class))     return TypeDescription.ForLoadedType.of(Integer.class);
+        if (t.represents(long.class))    return TypeDescription.ForLoadedType.of(Long.class);
+        if (t.represents(double.class))  return TypeDescription.ForLoadedType.of(Double.class);
+        if (t.represents(float.class))   return TypeDescription.ForLoadedType.of(Float.class);
+        if (t.represents(short.class))   return TypeDescription.ForLoadedType.of(Short.class);
+        if (t.represents(byte.class))    return TypeDescription.ForLoadedType.of(Byte.class);
+        if (t.represents(char.class))    return TypeDescription.ForLoadedType.of(Character.class);
+
+        return t;
+    }
+
+    private boolean isAssignable(TypeDescription target, TypeDescription valueType, Object value) {
+        if (target.isPrimitive()) {
+            // allow unboxing conversions for primitives (e.g. int can be assigned from Integer)
+            return box(target).isAssignableFrom(valueType);
+        }
+
+        if (target.isEnum() && value instanceof String s) {
+            return isEnumDisplayString(target, s);
+        }
+
+        if (target.isArray()) {
+            if (value instanceof List<?> list) return isArrayValueAssignable(target, list);
+            if (value != null && value.getClass().isArray()) return isArrayValueAssignable(target, value);
+        }
+
+        if (target.isAssignableFrom(valueType)) return true;
+        if (target.represents(Class.class) && valueType.represents(Type.class)) {
+            // allow Type to be assigned to Class for annotation members of type Class<?>
+            return true;
+        }
+
+        return false;
+    }
+
+    /** {@link AnnotationVisitor#visitArray} values are collected as {@link List}, not Java arrays. */
+    private boolean isArrayValueAssignable(TypeDescription targetArray, List<?> list) {
+        TypeDescription component = targetArray.getComponentType();
+        for (Object elem : list) {
+            if (elem == null) continue;
+            if (!isAssignable(component, TypeDescription.ForLoadedType.of(elem.getClass()), elem)) return false;
+        }
+
+        return true;
+    }
+
+    private boolean isArrayValueAssignable(TypeDescription targetArray, Object array) {
+        TypeDescription component = targetArray.getComponentType();
+        for (int i = 0, len = Array.getLength(array); i < len; i++) {
+            Object elem = Array.get(array, i);
+            if (elem == null) continue;
+            if (!isAssignable(component, TypeDescription.ForLoadedType.of(elem.getClass()), elem)) return false;
+        }
+
+        return true;
+    }
+
+    /** {@link AnnotationVisitor#visitEnum} values are stored as {@code SimpleName.CONSTANT} display strings. */
+    private static boolean isEnumDisplayString(TypeDescription enumType, String display) {
+        int dot = display.lastIndexOf('.');
+        if (dot <= 0 || dot >= display.length() - 1) return false;
+
+        String constantName = display.substring(dot + 1);
+        if (!enumType.isAssignableTo(Enum.class)) return true;
+
+        try {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            Class<? extends Enum> enumCls = (Class<? extends Enum>) Class.forName(enumType.getName());
+            Enum.valueOf(enumCls, constantName);
+
+            return true;
+        } catch (ReflectiveOperationException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private record Rule(boolean allowBlank, boolean allowDefault) {}
+
+    private static final Map<String, Map<String, Rule>> _annotationRules = Map.of(
+        Type.getDescriptor(Advice.FieldValue.class), Map.of(
+            "value", new Rule(false, false) // value member of @FieldValue cannot be empty string
+        )
+    );
+
+    boolean validateAnnotation(TypeDescription td, Map<String, MethodDescription> methods, Map<String, Object> values, Map<String, Rule> rules, Set<String> unkMembers) {
+        boolean valid = true;
+        for (MethodDescription m : methods.values()) {
+            String name = m.getName();
+            Rule rule = rules.get(name);
+            Object value = values.get(name);
+            if (value == null) {
+                if (rule != null && !rule.allowDefault()) {
+                    Logger.debug("missing required annotation member -", name);
+                    valid = false;
+                    continue;
+                }
+                value = m.getDefaultValue();
+            } else {
+                TypeDescription returnType = m.getReturnType().asErasure();
+                TypeDescription valueType  = TypeDescription.ForLoadedType.of(value.getClass());
+                if (!isAssignable(returnType, valueType, value)) {
+                    Logger.debug(m.getReturnType() + " " + name + " is not assignable from " + valueType, value);
+                    valid = false;
+                }
+            }
+            if (value == null) {
+                Logger.debug("missing required annotation member", name);
+                valid = false;
+                continue;
+            }
+            if (rule != null && !rule.allowBlank() && Utils.isBlank(value)) {
+                Logger.debug("annotation " + name + " value cannot be blank", name);
+                valid = false;
+            }
+        }
+        for (var name : values.keySet()) {
+            if (!methods.containsKey(name)) {
+                unkMembers.add(name);
+                // Logger.debug("unknown annotation member", name);
+                // valid = false;
+            }
+        }
+        return valid;
+    }
+
+    boolean validateAnnotation(String desc, Map<String, Object> values, Set<String> unkMembers) {
+        TypeDescription td = m_ctx.getTypeDesc(desc);
+        if (td == null) {
+            Logger.error("Annotation type not found: " + desc);
+            return false;
+        }
+
+        Map<String, MethodDescription> methods = _annMemberCache.computeIfAbsent(td.getName(), k -> getAnnotationMembers(td));
+        Map<String, Rule> rules = _annotationRules.getOrDefault(desc, Map.of());
+        return validateAnnotation(td, methods, values, rules, unkMembers);
+    }
+
+    String formatAnnotation(String desc, Map<String, Object> values) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(annotationName(desc));
+
+        Set<String> unkMembers = new HashSet<>();
+        boolean valid = !isDeprecated(desc) && (
+            Internal.isOwnAnnotationDesc(desc) || validateAnnotation(desc, values, unkMembers)
+        );
+        int rowColor = valid
+            ? (desc.contains("bytebuddy")
+                    ? (desc.startsWith("Lnet/bytebuddy/implementation/bind/annotation") ? BB_BIND_ANN_COLOR : BB_ANN_COLOR)
+                    : ANN_COLOR) 
+            : RED;
+
+        if (!values.isEmpty()) {
+            sb.append("(");
+            if (values.size() == 1 && values.containsKey("value")) {
+                // special case for single "value" member to allow @Anno("foo") instead of @Anno(value="foo")
+                sb.append(formatValue(values.get("value")));
+            } else {
+                boolean first = true;
+                for (var e : values.entrySet()) {
+                    if (!first) {
+                        sb.append(", ");
+                    }
+                    first = false;
+                    String formattedKV = e.getKey() + "=" + formatValue(e.getValue());
+                    if (unkMembers.contains(e.getKey())) {
+                        formattedKV = colorize(formattedKV, YELLOW, rowColor);
+                    }
+                    sb.append(formattedKV);
+                }
+            }
+            sb.append(")");
+        }
+
+        return colorize(sb.toString(), rowColor);
+    }
+
+    static String formatValue(Object v) {
+        if (v instanceof String s) {
+            return "\"" + s + "\"";
+        }
+        if (v instanceof Type t) {
+            return simpleName(t.getDescriptor()) + ".class";
+        }
+        if (v instanceof List<?> list) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            boolean first = true;
+            for (Object o : list) {
+                if (!first) {
+                    sb.append(", ");
+                }
+                first = false;
+                sb.append(formatValue(o));
+            }
+            sb.append("}");
+            return sb.toString();
+        }
+        return String.valueOf(v);
+    }
+
+    /** ASM uses {@code null} for the default member name {@code value}. */
+    private static String annMemberName(String name) {
+        return name != null ? name : "value";
+    }
+
+    /**
+     * Collects annotation member values (non-default elements visited by ASM) and passes the formatted line to {@code emitLine} on {@link AnnotationVisitor#visitEnd()}.
+     */
+    AnnotationVisitor annotationPrinter(String desc, Consumer<String> emitLine) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        return annotationPrinterBody(desc, values, () -> emitLine.accept(formatAnnotation(desc, values)));
+    }
+
+    private AnnotationVisitor annotationPrinterBody(String desc, Map<String, Object> values, Runnable onEnd) {
+        return new AnnotationVisitor(ASM_API) {
+            @Override
+            public void visit(String name, Object value) {
+                values.put(annMemberName(name), value);
+            }
+
+            @Override
+            public void visitEnum(String name, String descriptor, String value) {
+                values.put(annMemberName(name), simpleName(descriptor) + "." + value);
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+                Map<String, Object> nested = new LinkedHashMap<>();
+                String key = annMemberName(name);
+                return annotationPrinterBody(descriptor, nested, () -> values.put(key, formatAnnotation(descriptor, nested)));
+            }
+
+            @Override
+            public AnnotationVisitor visitArray(String name) {
+                List<Object> arr = new ArrayList<>();
+                values.put(annMemberName(name), arr);
+                return annotationArrayElements(arr);
+            }
+
+            @Override
+            public void visitEnd() {
+                onEnd.run();
+            }
+        };
+    }
+
+    private AnnotationVisitor annotationArrayElements(List<Object> arr) {
+        return new AnnotationVisitor(ASM_API) {
+            @Override
+            public void visit(String name, Object value) {
+                arr.add(value);
+            }
+
+            @Override
+            public void visitEnum(String name, String descriptor, String value) {
+                arr.add(simpleName(descriptor) + "." + value);
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+                Map<String, Object> nested = new LinkedHashMap<>();
+                return annotationPrinterBody(descriptor, nested, () -> arr.add(formatAnnotation(descriptor, nested)));
+            }
+
+            @Override
+            public AnnotationVisitor visitArray(String name) {
+                List<Object> inner = new ArrayList<>();
+                arr.add(inner);
+                return annotationArrayElements(inner);
+            }
+        };
+    }
+
+    public String dumpClass(byte[] classBytes) {
+        var allParams = AbstractTransformer.collectParamNames(classBytes);
+
+        StringBuilder sb = new StringBuilder();
+        ClassReader   cr = new ClassReader(classBytes);
+        ClassVisitor  cv = new ClassVisitor(ASM_API) {
+            @Override
+            public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                return annotationPrinter(desc, line -> sb.insert(0, line + "\n"));
+            }
+
+            @Override
+            public void visit(int version, int access, String className, String signature, String superName, String[] interfaces) {
+                StringBuilder csb = new StringBuilder();
+                csb.append(classModifiers(access)).append(" class ").append(className.replace('/', '.'));
+                if (!Type.getInternalName(Object.class).equals(superName)) {
+                    csb.append(" extends ").append(superName);
+                }
+
+                if (interfaces != null && interfaces.length > 0) {
+                    csb.append(" implements");
+                    for (String ifname : interfaces) {
+                        csb.append(" ").append(ifname);
+                    }
+                }
+                sb.append(csb).append("\n");
+            }
+
+            @Override
+            public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+                StringBuilder fsb = new StringBuilder();
+
+                return new FieldVisitor(ASM_API) {
+                    @Override
+                    public AnnotationVisitor visitAnnotation(String adesc, boolean visible) {
+                        return annotationPrinter(adesc, line -> fsb.append(line).append("\n"));
+                    }
+
+                    @Override
+                    public void visitEnd() {
+                        fsb.append(fieldModifiers(access)).append(" ")
+                            .append(simpleName(descriptor)).append(" ")
+                            .append(name).append("\n");
+                        sb.append(indent(fsb.toString()));
+                    }
+                };
+            }
+
+            @Override
+            public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                String[] paramNames = allParams.getOrDefault(name + descriptor, new String[0]);
+                StringBuilder msb = new StringBuilder();
+                Type mt = Type.getMethodType(descriptor);
+                Type[] args = mt.getArgumentTypes();
+                List<List<String>> paramAnnotations = new ArrayList<>();
+
+                for (int i = 0; i < args.length; i++) {
+                    paramAnnotations.add(new ArrayList<>());
+                }
+
+                //MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
+                return new MethodVisitor(ASM_API /*, mv*/) {
+                    // available only if compiled with -parameters
+                    // @Override
+                    // public void visitParameter(String name, int access) {
+                    //     Logger.debug("parameter", name, access);
+                    // }
+
+                    @Override
+                    public AnnotationVisitor visitAnnotation(String adesc, boolean visible) {
+                        return annotationPrinter(adesc, line -> msb.append(line).append("\n"));
+                    }
+
+                    @Override
+                    public AnnotationVisitor visitParameterAnnotation(int parameter, String adescriptor, boolean visible) {
+                        return annotationPrinter(adescriptor, line -> paramAnnotations.get(parameter).add(line));
+                    }
+
+                    @Override
+                    public void visitEnd() {
+                        msb.append(methodModifiers(access)).append(" ").append(name).append("(");
+
+                        int nAnns = 0;
+                        int nAnnotatedParams = 0;
+                        int maxAnnLen = 0;
+                        CompactTable tbl = new CompactTable(4).setAlign(2, CompactTable.Align.RIGHT);
+                        for (int i = 0; i < args.length; i++) {
+                            List<String> anns = paramAnnotations.get(i).stream().map(s -> s.replace("$", ".")).toList();
+                            if (!anns.isEmpty()) {
+                                nAnns += anns.size();
+                                nAnnotatedParams++;
+                            } 
+                            Map<Boolean, List<String>> parts = anns.stream().collect(Collectors.partitioningBy(s -> s.contains("@Patch")));
+                            String paramName = (i >= paramNames.length) ? ("arg" + i ) : paramNames[i];
+                            if (
+                                    parts.get(true).size() == 1          && parts.get(false).size() == 1 &&
+                                    parts.get(true).get(0).length() > 50 && parts.get(false).get(0).length() > 50
+                            ) {
+                                tbl.addCompactRow( parts.get(true).get(0),  null, null, null );
+                                tbl.addCompactRow( parts.get(false).get(0), null, null, null );
+                                tbl.addRow( null, null, simpleName(args[i].getDescriptor()), paramName + ((i < args.length - 1) ? "," : "") );
+                            } else {
+                                tbl.addRow(
+                                        String.join(" ", parts.get(true)),
+                                        String.join(" ", parts.get(false)),
+                                        simpleName(args[i].getDescriptor()),
+                                        paramName + ((i < args.length - 1) ? "," : "")
+                                        );
+                            }
+                        }
+
+                        final String oneLine = String.join(" ", tbl.rows().stream().map(r -> r.toString()).toArray(String[]::new));
+                        if (nAnns > 4 || args.length > 10 || (oneLine.length() > 120 && args.length > 1)) {
+                            // multi-line if there are many annotations but not all params are annotated (to avoid too much clutter)
+                            msb.append("\n");
+                            msb.append(indent(tbl.toString()));
+                        } else {
+                            // one-line
+                            msb.append(oneLine);
+                        }
+
+                        msb.append(")\n");
+                        sb.append(indent(msb.toString()));
+                    }
+                };
+            }
+        };
+        // SKIP_CODE or SKIP_DEBUG hides method parameter names
+        cr.accept(cv, ClassReader.SKIP_FRAMES);
+        return sb.toString();
+    }
+}
